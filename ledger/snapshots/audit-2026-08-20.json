@@ -1,0 +1,301 @@
+{
+  "vendor": "APERTURE",
+  "fetched_at": "2026-08-20T14:01:36+00:00",
+  "corpus": [
+    {
+      "name": "aggregates-custom-bars",
+      "path": "/docs/rest/stocks/aggregates/custom-bars.md"
+    },
+    {
+      "name": "aggregates-daily-market-summary",
+      "path": "/docs/rest/stocks/aggregates/daily-market-summary.md"
+    },
+    {
+      "name": "aggregates-daily-ticker-summary",
+      "path": "/docs/rest/stocks/aggregates/daily-ticker-summary.md"
+    },
+    {
+      "name": "aggregates-previous-day-bar",
+      "path": "/docs/rest/stocks/aggregates/previous-day-bar.md"
+    },
+    {
+      "name": "corporate-actions-dividends",
+      "path": "/docs/rest/stocks/corporate-actions/dividends.md"
+    },
+    {
+      "name": "corporate-actions-ipos",
+      "path": "/docs/rest/stocks/corporate-actions/ipos.md"
+    },
+    {
+      "name": "corporate-actions-reference-dividends",
+      "path": "/docs/rest/stocks/corporate-actions/reference-dividends.md"
+    },
+    {
+      "name": "corporate-actions-reference-splits",
+      "path": "/docs/rest/stocks/corporate-actions/reference-splits.md"
+    },
+    {
+      "name": "corporate-actions-splits",
+      "path": "/docs/rest/stocks/corporate-actions/splits.md"
+    },
+    {
+      "name": "corporate-actions-ticker-events",
+      "path": "/docs/rest/stocks/corporate-actions/ticker-events.md"
+    },
+    {
+      "name": "filings-10-k-sections",
+      "path": "/docs/rest/stocks/filings/10-k-sections.md"
+    },
+    {
+      "name": "filings-13-f-filings",
+      "path": "/docs/rest/stocks/filings/13-f-filings.md"
+    },
+    {
+      "name": "filings-8-k-disclosures",
+      "path": "/docs/rest/stocks/filings/8-k-disclosures.md"
+    },
+    {
+      "name": "filings-8-k-text",
+      "path": "/docs/rest/stocks/filings/8-k-text.md"
+    },
+    {
+      "name": "filings-disclosure-categories",
+      "path": "/docs/rest/stocks/filings/disclosure-categories.md"
+    },
+    {
+      "name": "filings-form-3",
+      "path": "/docs/rest/stocks/filings/form-3.md"
+    },
+    {
+      "name": "filings-form-4",
+      "path": "/docs/rest/stocks/filings/form-4.md"
+    },
+    {
+      "name": "filings-index",
+      "path": "/docs/rest/stocks/filings/index.md"
+    },
+    {
+      "name": "filings-risk-categories",
+      "path": "/docs/rest/stocks/filings/risk-categories.md"
+    },
+    {
+      "name": "filings-risk-factors",
+      "path": "/docs/rest/stocks/filings/risk-factors.md"
+    },
+    {
+      "name": "fundamentals-balance-sheets",
+      "path": "/docs/rest/stocks/fundamentals/balance-sheets.md"
+    },
+    {
+      "name": "fundamentals-cash-flow-statements",
+      "path": "/docs/rest/stocks/fundamentals/cash-flow-statements.md"
+    },
+    {
+      "name": "fundamentals-float",
+      "path": "/docs/rest/stocks/fundamentals/float.md"
+    },
+    {
+      "name": "fundamentals-income-statements",
+      "path": "/docs/rest/stocks/fundamentals/income-statements.md"
+    },
+    {
+      "name": "fundamentals-ratios",
+      "path": "/docs/rest/stocks/fundamentals/ratios.md"
+    },
+    {
+      "name": "fundamentals-short-interest",
+      "path": "/docs/rest/stocks/fundamentals/short-interest.md"
+    },
+    {
+      "name": "fundamentals-short-volume",
+      "path": "/docs/rest/stocks/fundamentals/short-volume.md"
+    },
+    {
+      "name": "market-operations-condition-codes",
+      "path": "/docs/rest/stocks/market-operations/condition-codes.md"
+    },
+    {
+      "name": "market-operations-exchanges",
+      "path": "/docs/rest/stocks/market-operations/exchanges.md"
+    },
+    {
+      "name": "market-operations-market-holidays",
+      "path": "/docs/rest/stocks/market-operations/market-holidays.md"
+    },
+    {
+      "name": "market-operations-market-status",
+      "path": "/docs/rest/stocks/market-operations/market-status.md"
+    },
+    {
+      "name": "news",
+      "path": "/docs/rest/stocks/news.md"
+    },
+    {
+      "name": "snapshots-full-market-snapshot",
+      "path": "/docs/rest/stocks/snapshots/full-market-snapshot.md"
+    },
+    {
+      "name": "snapshots-single-ticker-snapshot",
+      "path": "/docs/rest/stocks/snapshots/single-ticker-snapshot.md"
+    },
+    {
+      "name": "snapshots-top-market-movers",
+      "path": "/docs/rest/stocks/snapshots/top-market-movers.md"
+    },
+    {
+      "name": "snapshots-unified-snapshot",
+      "path": "/docs/rest/stocks/snapshots/unified-snapshot.md"
+    },
+    {
+      "name": "technical-indicators-exponential-moving-average",
+      "path": "/docs/rest/stocks/technical-indicators/exponential-moving-average.md"
+    },
+    {
+      "name": "technical-indicators-moving-average-convergence-divergence",
+      "path": "/docs/rest/stocks/technical-indicators/moving-average-convergence-divergence.md"
+    },
+    {
+      "name": "technical-indicators-relative-strength-index",
+      "path": "/docs/rest/stocks/technical-indicators/relative-strength-index.md"
+    },
+    {
+      "name": "technical-indicators-simple-moving-average",
+      "path": "/docs/rest/stocks/technical-indicators/simple-moving-average.md"
+    },
+    {
+      "name": "tickers-all-tickers",
+      "path": "/docs/rest/stocks/tickers/all-tickers.md"
+    },
+    {
+      "name": "tickers-related-tickers",
+      "path": "/docs/rest/stocks/tickers/related-tickers.md"
+    },
+    {
+      "name": "tickers-ticker-overview",
+      "path": "/docs/rest/stocks/tickers/ticker-overview.md"
+    },
+    {
+      "name": "tickers-ticker-types",
+      "path": "/docs/rest/stocks/tickers/ticker-types.md"
+    },
+    {
+      "name": "trades-quotes-last-quote",
+      "path": "/docs/rest/stocks/trades-quotes/last-quote.md"
+    },
+    {
+      "name": "trades-quotes-last-trade",
+      "path": "/docs/rest/stocks/trades-quotes/last-trade.md"
+    },
+    {
+      "name": "trades-quotes-quotes",
+      "path": "/docs/rest/stocks/trades-quotes/quotes.md"
+    },
+    {
+      "name": "trades-quotes-trades",
+      "path": "/docs/rest/stocks/trades-quotes/trades.md"
+    }
+  ],
+  "controls": {
+    "matcher_live_fire": {
+      "pattern": "accept|acknowledg|received[_ ]?(at|time|datetime)|disseminat",
+      "specimen_matched": true,
+      "held": true
+    },
+    "positive": {
+      "term": "filing_date",
+      "scope": "fundamentals",
+      "docs_hit": 3,
+      "held": true
+    },
+    "negative": {
+      "deprecated_route_status": 401,
+      "bogus_route_status": 404,
+      "held": true,
+      "note": "401 on the deprecated route + 404 on a bogus path = the route still exists behind auth"
+    }
+  },
+  "findings": {
+    "acceptance_timestamp": {
+      "question": "Does any endpoint expose an SEC acceptance timestamp?",
+      "docs_searched": 48,
+      "hits": [],
+      "verdict": "ABSENT"
+    },
+    "as_of_mode": {
+      "question": "Is there a knowledge-time as-of query mode?",
+      "date_params_found": [
+        {
+          "doc": "aggregates-daily-market-summary",
+          "path": "/docs/rest/stocks/aggregates/daily-market-summary.md",
+          "param": "date",
+          "declares_point_in_time": false,
+          "keyed_to_report_period": false
+        },
+        {
+          "doc": "aggregates-daily-ticker-summary",
+          "path": "/docs/rest/stocks/aggregates/daily-ticker-summary.md",
+          "param": "date",
+          "declares_point_in_time": false,
+          "keyed_to_report_period": false
+        },
+        {
+          "doc": "fundamentals-short-volume",
+          "path": "/docs/rest/stocks/fundamentals/short-volume.md",
+          "param": "date",
+          "declares_point_in_time": false,
+          "keyed_to_report_period": false
+        },
+        {
+          "doc": "tickers-all-tickers",
+          "path": "/docs/rest/stocks/tickers/all-tickers.md",
+          "param": "date",
+          "declares_point_in_time": true,
+          "keyed_to_report_period": false
+        },
+        {
+          "doc": "tickers-ticker-overview",
+          "path": "/docs/rest/stocks/tickers/ticker-overview.md",
+          "param": "date",
+          "declares_point_in_time": true,
+          "keyed_to_report_period": true
+        }
+      ],
+      "knowledge_time_params": [
+        {
+          "doc": "tickers-all-tickers",
+          "path": "/docs/rest/stocks/tickers/all-tickers.md",
+          "param": "date",
+          "declares_point_in_time": true,
+          "keyed_to_report_period": false
+        }
+      ],
+      "report_time_keyed_params": [
+        {
+          "doc": "tickers-ticker-overview",
+          "path": "/docs/rest/stocks/tickers/ticker-overview.md",
+          "param": "date",
+          "declares_point_in_time": true,
+          "keyed_to_report_period": true
+        }
+      ],
+      "fundamentals_or_filings_with_pit_param": [],
+      "verdict": "ABSENT on fundamentals/filings"
+    },
+    "precision_asymmetry": {
+      "question": "Is sub-day temporal precision available on filing surfaces?",
+      "filing_surface_docs": 17,
+      "filing_surface_docs_with_subday_time": 0,
+      "other_docs": 31,
+      "other_docs_with_subday_time": 13,
+      "docs_with_nanosecond_receipt_timestamps": [
+        "trades-quotes-last-quote",
+        "trades-quotes-last-trade",
+        "trades-quotes-quotes",
+        "trades-quotes-trades"
+      ],
+      "interpretable": true,
+      "verdict": "ABSENT on filing surfaces, present elsewhere"
+    }
+  },
+  "unevaluable": []
+}

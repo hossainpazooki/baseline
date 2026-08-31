@@ -1,0 +1,38 @@
+{
+  "kind": "GATE_VERDICT",
+  "surface": "vantage-gold-local-parquet",
+  "lane": 1,
+  "cell": "twin",
+  "result": "RED",
+  "checks": {
+    "no_future_accepted": 1,
+    "as_of_monotonicity": 0,
+    "restatement_visibility": 1
+  },
+  "evaluated": {
+    "no_future_accepted": 440661,
+    "as_of_monotonicity": 280324,
+    "restatement_visibility": 440661
+  },
+  "rows": 440661,
+  "scope": "full surface",
+  "params": {
+    "d": "2024-07-01T00:00:00+00:00",
+    "d_earlier": "2020-01-02T00:00:00+00:00"
+  },
+  "parallax_sha": "71d3c9dbbd5b37a654305c67857b8f910f08b5b2",
+  "parallax_worktree": "dirty",
+  "content_hash": "sha256:01be4edf771b9a2fc84f86c93b6c79a858f1c3f6621ce5073609a062be43ff47",
+  "content_hash_basis": "sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)",
+  "ran_at": "2026-08-31T18:46:17.935133Z",
+  "runner": "local",
+  "planted": {
+    "mutation": "plant_future_accepted",
+    "mutated_rows": 1,
+    "expected_violations": {
+      "no_future_accepted": 1,
+      "as_of_monotonicity": 0,
+      "restatement_visibility": 1
+    }
+  }
+}

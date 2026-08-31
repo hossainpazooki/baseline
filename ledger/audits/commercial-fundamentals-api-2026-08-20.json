@@ -1,0 +1,18 @@
+{
+  "kind": "SURFACE_AUDIT",
+  "surface": "commercial-fundamentals-api",
+  "vendor_alias": "APERTURE",
+  "doc_scope": "vendor stocks REST documentation corpus, 48 pages (aggregates, corporate actions, filings, fundamentals, market operations, news, snapshots, technical indicators, tickers, trades/quotes)",
+  "docs_searched": 48,
+  "fetched_at": "2026-08-20T14:01:36+00:00",
+  "audit_artifact": "snapshots/audit-2026-08-20.json",
+  "snapshot_hash": "sha256:c7b9835bb4e979428287da433e51602728db6e9a8933eee6d9fcf569daafe44f",
+  "field_quoted": "filing_date",
+  "controls": {
+    "live_fire": true,
+    "positive": true,
+    "negative": true
+  },
+  "results": ["NO_AS_OF_MODE", "NO_ACCEPTANCE_INSTANT"],
+  "notes": "Nanosecond receipt timestamps on trade/quote surfaces; calendar-day precision only on all 17 filing surfaces. No fundamentals or filings endpoint takes a knowledge-time parameter. Raw fetched pages are the vendor's text and are not republished here; the committed artifact is the machine audit result over that corpus, replayable via the auditor script against the vendor origin."
+}

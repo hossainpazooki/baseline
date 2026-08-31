@@ -1,0 +1,23 @@
+name: ledger-gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Order matters: the checker is credited by its negative controls first,
+      # then gates the real ledger, then the committed page must match the
+      # rows. Any failure fails the build. No `|| true`.
+      - name: negative controls hold
+        run: node scripts/test-ledger.mjs
+      - name: ledger gate
+        run: node scripts/check-ledger.mjs
+      - name: committed page matches ledger
+        run: node scripts/build.mjs --check
