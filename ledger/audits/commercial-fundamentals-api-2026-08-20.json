@@ -6,7 +6,7 @@
   "docs_searched": 48,
   "fetched_at": "2026-08-20T14:01:36+00:00",
   "audit_artifact": "snapshots/audit-2026-08-20.json",
-  "snapshot_hash": "sha256:c7b9835bb4e979428287da433e51602728db6e9a8933eee6d9fcf569daafe44f",
+  "snapshot_hash": "sha256:f02d465124885cffa5e40b5e1a69c8a72aedc4e4e31848ab3e2e99c184cc60ff",
   "field_quoted": "filing_date",
   "controls": {
     "live_fire": true,

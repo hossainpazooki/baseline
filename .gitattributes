@@ -1,0 +1,3 @@
+# One byte representation everywhere: LF in blobs AND in every working tree.
+# The ledger gate hashes file bytes; autocrlf checkouts must not re-encode them.
+* text=auto eol=lf

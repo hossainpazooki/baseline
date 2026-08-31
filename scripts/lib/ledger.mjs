@@ -31,8 +31,14 @@ const AUDIT_REQUIRED = [
 // <surface>-lane<lane>-<cell>-<compact-utc-stamp>.json
 const VERDICT_NAME = /^([a-z0-9][a-z0-9-]*)-lane([123])-(live|twin)-(\d{8}T\d{6}(?:\.\d+)?Z)\.json$/;
 
+// Hashes are over LF-normalized bytes — the ledger's files are text, its
+// parsers are newline-insensitive, and git/autocrlf re-encodes line endings
+// per platform. Hashing raw disk bytes made the gate stricter than its own
+// parser and produced CI-only false positives (caught 2026-08-31); hash what
+// the pipeline consumes, not the checkout's byte representation.
 export function sha256(buf) {
-  return createHash("sha256").update(buf).digest("hex");
+  const canonical = Buffer.from(buf).toString("latin1").replaceAll("\r\n", "\n");
+  return createHash("sha256").update(Buffer.from(canonical, "latin1")).digest("hex");
 }
 
 export function loadLedger(ledgerDir) {

@@ -210,6 +210,23 @@ let failures = 0;
   rmSync(dir, { recursive: true, force: true });
 }
 
+// Positive control (regression pin, 2026-08-31 CI incident): a checkout that
+// re-encodes a bound file's line endings to CRLF must still pass — the pins
+// are over LF-normalized bytes, not the platform's byte representation.
+{
+  const dir = goodLedger();
+  const crlf = readFileSync(join(dir, LIVE), "utf8").replaceAll("\n", "\r\n");
+  writeFileSync(join(dir, LIVE), crlf); // deliberately NOT rebound
+  const errs = checkLedger(dir);
+  if (errs.length) {
+    failures++;
+    console.error(`FAIL CRLF re-encoding should not trip the gate, got:\n  ${errs.join("\n  ")}`);
+  } else {
+    console.log("ok   CRLF re-encoded file still passes (LF-normalized hashing)");
+  }
+  rmSync(dir, { recursive: true, force: true });
+}
+
 for (const [name, mutate, pattern] of CONTROLS) {
   const dir = goodLedger();
   mutate(dir);
@@ -231,4 +248,4 @@ if (failures) {
   console.error(`\ntest-ledger: ${failures} failure(s)`);
   process.exit(1);
 }
-console.log(`\ntest-ledger: 3 positive + ${CONTROLS.length} negative controls, all held`);
+console.log(`\ntest-ledger: 4 positive + ${CONTROLS.length} negative controls, all held`);
