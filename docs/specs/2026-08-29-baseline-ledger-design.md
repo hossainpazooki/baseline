@@ -150,11 +150,20 @@ PARALLAX side: one test that the emitted verdict JSON round-trips the gate's
 in-memory result, and one that a twin run emits `RED` with the expected
 violation count.
 
-## 7. Open items (not blocking build, blocking publish)
+## 7. Open items - RESOLVED before publication
 
-- Whether the vendor is named on the ledger. Page currently does not name it.
-- Whether the 17,787-row measurement gets its own row kind in v1 or stays
-  prose flagged "not on the ledger."
+Both were settled before the site went live on 2026-08-31; neither gate was
+skipped. Kept here as a record of how they were decided.
+
+- ~~Whether the vendor is named on the ledger.~~ **Resolved: not named.** The
+  page carries `vendor_alias: APERTURE` and the spec's required `doc_url`
+  field was dropped, because a required doc_url beside a committed vendor page
+  is itself the naming act (amendment 2). Limit recorded in
+  `docs/learnings/2026-08-31-denaming-is-name-level-only.md`: the corpus paths
+  still fingerprint the vendor, so this is de-naming, not anonymity.
+- ~~Whether the 17,787-row measurement gets its own row kind in v1.~~
+  **Resolved: it stays prose**, rendered with a visible "reported, not on the
+  ledger" badge (amendment 9). A `MEASUREMENT` row kind is the leading v2 item.
 
 ## 8. Not built (v2)
 
@@ -228,5 +237,25 @@ conflict, the amendment is what is built and enforced.
 10. **§8's `cik % 10` is study-001's scope.** The gate's evidenced scope is
     `cik % 97`; the v2 exclusion means "no full-surface run beyond the
     sampled scopes already evidenced."
-11. **§9's row** was written to `STATUS.md` with the controls count and the
-    dirty-worktree disclosure added.
+11. **§9's row** was written to `STATUS.md` with the controls count added.
+    An earlier version of this item also described a dirty-worktree
+    disclosure; that no longer applies — the row instead records the
+    worktree state at its most recent clean re-emit (see item 12). The
+    controls count is 4 positive + 17 negative, up from 3+17 when this item
+    was first written.
+12. **2026-08-31, later the same day.** As-built history since item 11:
+    (a) both verdict rows were re-emitted from a clean PARALLAX tree at the
+    sha item 11 records; (b) the ledger's hash function was fixed to
+    normalize CRLF to LF before hashing, closing the raw-byte pin
+    false-positive caught in CI, and `.gitattributes` now forces LF in every
+    working tree; (c) the twin row's `scope` field, previously the literal
+    `"full surface"` inherited from the staged twin directory's own gate
+    invocation, was corrected at the PARALLAX emission boundary
+    (`verdict_row()` gained an explicit `scope` override, defaulted to the
+    prior behavior) to name the sampled basis instead of the directory's
+    apparent full population — this correction's own re-emission ran
+    against a PARALLAX tree the fix itself had left dirty, so the rows it
+    produced are stamped `parallax_worktree: dirty`, a regression from
+    item 12(a)'s clean emission pending a PARALLAX commit and a follow-up
+    clean re-emit; (d) GitHub Pages was enabled, publishing `main` root at
+    https://hossainpazooki.github.io/baseline/.
