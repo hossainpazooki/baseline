@@ -278,3 +278,14 @@ conflict, the amendment is what is built and enforced.
     controls, the ledger gate and `build --check`, making the page-may-not-
     outrun-its-rows invariant enforced by the host and not only by CI. Pages
     was retired; superseding item 12(d).
+14. **2026-09-01, later.** Granularity pass: the page now renders row fields
+    it previously held back — per-check `evaluated` counts and plain-language
+    check semantics (tied to `parallax_sha`; an undescribed check renders a
+    dash, never a guess), the `scope` of every cell (a new verdict-table
+    column and the diagram's live-node label), the viewpoint params `d` and
+    `d_earlier`, the plant's expected-vs-observed violation vectors with the
+    exact-match rule stated, a field-by-field run-anatomy table (identical
+    live/twin values collapse into one spanning cell only when equal, so
+    layout cannot hide a divergence), and the audit row's `doc_scope`,
+    method-control booleans, and verbatim `notes`. Every added value is
+    interpolated from a row; no new hand-typed figures.

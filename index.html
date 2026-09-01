@@ -133,6 +133,9 @@
     border-radius:4px;padding:3px 9px;vertical-align:middle;
   }
   .unsigned{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em}
+  .okv{color:var(--ok);font-weight:600}
+  .badv{color:var(--block);font-weight:600}
+  td.hash{white-space:normal;word-break:break-all;max-width:34ch}
 
   .sentence{
     border-left:2px solid var(--gold-border);background:var(--panel);
@@ -279,7 +282,7 @@
       <circle class="nd" cx="150" cy="250" r="7"/>
       <circle class="nd" cx="750" cy="250" r="7"/>
       <text class="t-name" x="150" y="228" text-anchor="middle">live cell</text>
-      <text class="t-sub"  x="150" y="300" text-anchor="middle">the real surface</text>
+      <text class="t-sub"  x="150" y="300" text-anchor="middle">cik % 97 == 0 sample</text>
       <text class="t-sub"  x="150" y="316" text-anchor="middle">440,661 as-of rows</text>
       <text class="t-name bl" x="750" y="228" text-anchor="middle">twin cell</text>
       <text class="t-sub"  x="750" y="300" text-anchor="middle">a copy, one planted error</text>
@@ -288,6 +291,7 @@
       <rect class="plate" x="342" y="72" width="216" height="58" rx="8"/>
       <text class="t-name au" x="450" y="96" text-anchor="middle">PARALLAX gate</text>
       <text class="t-sub" x="450" y="116" text-anchor="middle">3 checks · one run</text>
+      <text class="t-sub" x="450" y="150" text-anchor="middle">viewpoint d = 2024-07-01</text>
 
       <text class="t-mark ok"  x="286" y="176" text-anchor="middle">GREEN · 0 violations</text>
       <text class="t-mark bad" x="614" y="176" text-anchor="middle">RED · 2 violations</text>
@@ -296,7 +300,52 @@
     is a claim only against a twin that went red for the planted reason and nothing
     else. One viewpoint proves nothing in either instrument.</figcaption>
   </figure>
-  <div class="sentence">On 2026-09-01, the gate read 440,661 as-of rows of <code>vantage-gold-local-parquet</code> and found GREEN. The same check, run on a copy with one planted error, went RED.</div>
+  <div class="sentence">On 2026-09-01, the gate read 440,661 as-of rows of <code>vantage-gold-local-parquet</code> — scope <code>cik % 97 == 0 sample</code>, viewpoint d&nbsp;=&nbsp;2024-07-01 — and found GREEN on all 3 checks. The same run against a copy with one planted error went RED.</div>
+
+  <div class="panel reveal"><table>
+    <caption>the checks · semantics from the gate source at 25e12b872eb5</caption>
+    <thead><tr><th>Check</th><th>What it asserts</th><th>Evaluated</th>
+      <th>Live violations</th><th>Twin violations (expected)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="k">no_future_accepted</td>
+        <td>no row visible at the viewpoint d carries acceptance evidence stamped after d — the direct lookahead check</td>
+        <td class="num">440,661</td>
+        <td class="k"><span class="okv">0</span></td>
+        <td class="k"><span class="okv">1 = 1 expected</span></td>
+      </tr>
+      <tr>
+        <td class="k">as_of_monotonicity</td>
+        <td>moving the viewpoint forward (d_earlier → d) never loses a key and never regresses accepted knowledge</td>
+        <td class="num">280,324</td>
+        <td class="k"><span class="okv">0</span></td>
+        <td class="k"><span class="okv">0 = 0 expected</span></td>
+      </tr>
+      <tr>
+        <td class="k">restatement_visibility</td>
+        <td>restatements of one key stay separately visible: no duplicate collapse, no validity interval contradicting its acceptance evidence</td>
+        <td class="num">440,661</td>
+        <td class="k"><span class="okv">0</span></td>
+        <td class="k"><span class="okv">1 = 1 expected</span></td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p>The plant: <code>plant_future_accepted</code> mutated 1 row out of 440,661. Expected violations <code>{1, 0, 1}</code>; the gate returned <code>{1, 0, 1}</code> — an exact match, which is the only thing that credits the green above. A red for any other reason credits nothing.</p>
+
+  <div class="panel reveal"><table>
+    <caption>the run, field by field · every value read from the two rows</caption>
+    <thead><tr><th>Field</th><th>live cell</th><th>twin cell</th></tr></thead>
+    <tbody>
+      <tr><td class="k">scope</td><td class="">cik % 97 == 0 sample</td><td class="">staged twin over cik % 97 == 0 sample</td></tr>
+      <tr><td class="k">viewpoint d</td><td class="k" colspan="2">2024-07-01T00:00:00+00:00</td></tr>
+      <tr><td class="k">earlier viewpoint d_earlier</td><td class="k" colspan="2">2020-01-02T00:00:00+00:00</td></tr>
+      <tr><td class="k">ran_at</td><td class="k">2026-09-01T17:48:48.951466Z</td><td class="k">2026-09-01T17:48:49.431640Z</td></tr>
+      <tr><td class="k">gate commit</td><td class="k" colspan="2">25e12b872eb554a7e877bc25fa908579dee7f87d · worktree clean</td></tr>
+      <tr><td class="k">runner</td><td class="k" colspan="2">local</td></tr>
+      <tr><td class="k">content_hash</td><td class="k hash">sha256:3fcfb3c3c28a0c28f3dc3e454b89767461f34fa6431238f58633c4bad8a31b65</td><td class="k hash">sha256:01be4edf771b9a2fc84f86c93b6c79a858f1c3f6621ce5073609a062be43ff47</td></tr>
+      <tr><td class="k">hash basis</td><td class="" colspan="2">sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)</td></tr>
+    </tbody>
+  </table></div>
 
   <h2>A value is not a fact until you store the viewpoint</h2>
   <p>In 1838 Friedrich Bessel published the first stellar parallax: 0.3136 arcseconds
@@ -320,6 +369,9 @@
   corpus, with live-fire, positive, and negative controls on the audit method itself
   &mdash; expose no acceptance instant and no way to ask an as-of question at all.</p>
   <div class="sentence vendor">As of 2026-08-20, this vendor&#39;s fundamentals endpoints offered no way to ask what was known on a given day. Field that dates a period: <code>filing_date</code>. Source: machine audit over 48 documentation pages (artifact <code>snapshots/audit-2026-08-20.json</code>).</div>
+  <div class="sentence vendor">Nanosecond receipt timestamps on trade/quote surfaces; calendar-day precision only on all 17 filing surfaces. No fundamentals or filings endpoint takes a knowledge-time parameter. Raw fetched pages are the vendor&#39;s text and are not republished here; the committed artifact is the machine audit result over that corpus, replayable via the auditor script against the vendor origin. <span class="muted">&mdash; the row&#39;s own notes field, verbatim.</span></div>
+  <p class="muted">Method controls held on the audit itself: <code>live_fire</code>&nbsp;&#10003; · <code>positive</code>&nbsp;&#10003; · <code>negative</code>&nbsp;&#10003;.
+  Corpus: vendor stocks REST documentation corpus, 48 pages (aggregates, corporate actions, filings, fundamentals, market operations, news, snapshots, technical indicators, tickers, trades/quotes).</p>
 
   <h2>The three failures</h2>
   <p>Every fundamentals read surface handles the viewpoint problem in one of four ways.
@@ -362,7 +414,7 @@
   <p>Gate verdicts &mdash; each resolves to a replayable run (commit, content hash):</p>
   <div class="panel reveal"><table>
     <caption>GATE_VERDICT &middot; gate output, never hand-edited</caption>
-    <thead><tr><th>Result</th><th>Surface</th><th>Lane</th><th>Cell</th>
+    <thead><tr><th>Result</th><th>Surface</th><th>Lane</th><th>Cell</th><th>Scope</th>
       <th>As-of rows</th><th>Violations by check</th><th>Ran</th>
       <th>Gate commit</th><th>Content hash</th><th>Provenance</th></tr></thead>
     <tbody>
@@ -371,6 +423,7 @@
         <td class="k">vantage-gold-local-parquet</td>
         <td>1 · local Parquet</td>
         <td>live</td>
+        <td>cik % 97 == 0 sample</td>
         <td class="num">440,661</td>
         <td class="k">no_future_accepted:0  as_of_monotonicity:0  restatement_visibility:0</td>
         <td>2026-09-01</td>
@@ -383,6 +436,7 @@
         <td class="k">vantage-gold-local-parquet</td>
         <td>1 · local Parquet</td>
         <td>twin</td>
+        <td>staged twin over cik % 97 == 0 sample</td>
         <td class="num">440,661</td>
         <td class="k">no_future_accepted:1  as_of_monotonicity:0  restatement_visibility:1</td>
         <td>2026-09-01</td>

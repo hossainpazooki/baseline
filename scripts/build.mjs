@@ -68,10 +68,34 @@ const statusByLane = Object.fromEntries(
 const SITE = "https://hossainpazooki.github.io";
 const vio = (r) => Object.values(r.checks).reduce((a, b) => a + b, 0);
 
+// Check semantics: what each named check asserts, verifiable against the gate
+// source at the parallax_sha every row carries. A check the page cannot
+// describe renders a dash, never a guess.
+const CHECK_DOCS = {
+  no_future_accepted:
+    "no row visible at the viewpoint d carries acceptance evidence stamped after d — the direct lookahead check",
+  as_of_monotonicity:
+    "moving the viewpoint forward (d_earlier → d) never loses a key and never regresses accepted knowledge",
+  restatement_visibility:
+    "restatements of one key stay separately visible: no duplicate collapse, no validity interval contradicting its acceptance evidence",
+};
+
+// Compact violations vector in stable check order, e.g. {1, 0, 1}.
+const fmtChecks = (o) =>
+  "{" + Object.keys(live ? live.checks : o).map((k) => o[k]).join(", ") + "}";
+
+// One value or two: renders a single spanning cell only when the cells agree,
+// so a divergence between live and twin can never be hidden by layout.
+const pairTd = (a, b, cls = "") => a === b
+  ? `<td class="${cls}" colspan="2">${a}</td>`
+  : `<td class="${cls}">${a}</td><td class="${cls}">${b}</td>`;
+
 const liveSentence = live
   ? `On ${day(live.ran_at)}, the gate read ${n(live.rows)} as-of rows of ` +
-    `<code>${esc(surface)}</code> and found ${live.result}.` +
-    (twin ? ` The same check, run on a copy with one planted error, went ${twin.result}.` : "")
+    `<code>${esc(surface)}</code> — scope <code>${esc(live.scope)}</code>, ` +
+    `viewpoint d&nbsp;=&nbsp;${day(live.params.d)} — and found ${live.result} ` +
+    `on all ${Object.keys(live.checks).length} checks.` +
+    (twin ? ` The same run against a copy with one planted error went ${twin.result}.` : "")
   : "";
 const auditSentence =
   `As of ${day(audit.fetched_at)}, this vendor&#39;s fundamentals endpoints offered no way ` +
@@ -98,7 +122,7 @@ const diagram = (live && twin) ? `
       <circle class="nd" cx="150" cy="250" r="7"/>
       <circle class="nd" cx="750" cy="250" r="7"/>
       <text class="t-name" x="150" y="228" text-anchor="middle">live cell</text>
-      <text class="t-sub"  x="150" y="300" text-anchor="middle">the real surface</text>
+      <text class="t-sub"  x="150" y="300" text-anchor="middle">${esc(live.scope)}</text>
       <text class="t-sub"  x="150" y="316" text-anchor="middle">${n(live.rows)} as-of rows</text>
       <text class="t-name bl" x="750" y="228" text-anchor="middle">twin cell</text>
       <text class="t-sub"  x="750" y="300" text-anchor="middle">a copy, one planted error</text>
@@ -107,6 +131,7 @@ const diagram = (live && twin) ? `
       <rect class="plate" x="342" y="72" width="216" height="58" rx="8"/>
       <text class="t-name au" x="450" y="96" text-anchor="middle">PARALLAX gate</text>
       <text class="t-sub" x="450" y="116" text-anchor="middle">${Object.keys(live.checks).length} checks · one run</text>
+      <text class="t-sub" x="450" y="150" text-anchor="middle">viewpoint d = ${day(live.params.d)}</text>
 
       <text class="t-mark ok"  x="286" y="176" text-anchor="middle">${esc(live.result)} · ${vio(live)} violations</text>
       <text class="t-mark bad" x="614" y="176" text-anchor="middle">${esc(twin.result)} · ${vio(twin)} violations</text>
@@ -116,12 +141,58 @@ const diagram = (live && twin) ? `
     else. One viewpoint proves nothing in either instrument.</figcaption>
   </figure>` : "";
 
+// --- the checks, the plant, and the run anatomy ---------------------------
+const checksTable = (live && twin) ? `
+  <div class="panel reveal"><table>
+    <caption>the checks · semantics from the gate source at ${esc(live.parallax_sha.slice(0, 12))}</caption>
+    <thead><tr><th>Check</th><th>What it asserts</th><th>Evaluated</th>
+      <th>Live violations</th><th>Twin violations (expected)</th></tr></thead>
+    <tbody>${Object.keys(live.checks).map((k) => `
+      <tr>
+        <td class="k">${esc(k)}</td>
+        <td>${CHECK_DOCS[k] ? esc(CHECK_DOCS[k]) : '<span class="muted">&mdash;</span>'}</td>
+        <td class="num">${n(live.evaluated[k])}</td>
+        <td class="k"><span class="${live.checks[k] === 0 ? "okv" : "badv"}">${live.checks[k]}</span></td>
+        <td class="k"><span class="${twin.checks[k] === twin.planted.expected_violations[k] ? "okv" : "badv"}">${twin.checks[k]} = ${twin.planted.expected_violations[k]} expected</span></td>
+      </tr>`).join("")}
+    </tbody>
+  </table></div>` : "";
+
+const plantMatch = twin
+  && JSON.stringify(twin.checks) === JSON.stringify(twin.planted.expected_violations);
+const plantSentence = twin ? `The plant: <code>${esc(twin.planted.mutation)}</code> mutated ` +
+  `${n(twin.planted.mutated_rows)} row out of ${n(twin.rows)}. Expected violations ` +
+  `<code>${fmtChecks(twin.planted.expected_violations)}</code>; the gate returned ` +
+  `<code>${fmtChecks(twin.checks)}</code> — ` +
+  (plantMatch
+    ? `an exact match, which is the only thing that credits the green above. A red for any other reason credits nothing.`
+    : `<span class="badv">NOT an exact match — this page should not have built.</span>`) : "";
+
+const anatomy = (live && twin) ? `
+  <div class="panel reveal"><table>
+    <caption>the run, field by field · every value read from the two rows</caption>
+    <thead><tr><th>Field</th><th>live cell</th><th>twin cell</th></tr></thead>
+    <tbody>
+      <tr><td class="k">scope</td>${pairTd(esc(live.scope), esc(twin.scope))}</tr>
+      <tr><td class="k">viewpoint d</td>${pairTd(esc(live.params.d), esc(twin.params.d), "k")}</tr>
+      <tr><td class="k">earlier viewpoint d_earlier</td>${pairTd(esc(live.params.d_earlier), esc(twin.params.d_earlier), "k")}</tr>
+      <tr><td class="k">ran_at</td>${pairTd(esc(live.ran_at), esc(twin.ran_at), "k")}</tr>
+      <tr><td class="k">gate commit</td>${pairTd(
+        esc(live.parallax_sha) + " · worktree " + esc(live.parallax_worktree),
+        esc(twin.parallax_sha) + " · worktree " + esc(twin.parallax_worktree), "k")}</tr>
+      <tr><td class="k">runner</td>${pairTd(esc(live.runner), esc(twin.runner), "k")}</tr>
+      <tr><td class="k">content_hash</td>${pairTd(esc(live.content_hash), esc(twin.content_hash), "k hash")}</tr>
+      <tr><td class="k">hash basis</td>${pairTd(esc(live.content_hash_basis), esc(twin.content_hash_basis))}</tr>
+    </tbody>
+  </table></div>` : "";
+
 const verdictRowsHtml = verdicts.map(({ row, rel }) => `
       <tr>
         <td><span class="pill ${row.result.toLowerCase()}">${row.result}</span></td>
         <td class="k">${esc(row.surface)}</td>
         <td>${row.lane} · ${esc(LANES[row.lane])}</td>
         <td>${esc(row.cell)}</td>
+        <td>${esc(row.scope)}</td>
         <td class="num">${n(row.rows)}</td>
         <td class="k">${Object.entries(row.checks).map(([k, v]) =>
           `${esc(k)}:${v}`).join("  ")}</td>
@@ -290,6 +361,9 @@ const html = `<!doctype html>
     border-radius:4px;padding:3px 9px;vertical-align:middle;
   }
   .unsigned{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em}
+  .okv{color:var(--ok);font-weight:600}
+  .badv{color:var(--block);font-weight:600}
+  td.hash{white-space:normal;word-break:break-all;max-width:34ch}
 
   .sentence{
     border-left:2px solid var(--gold-border);background:var(--panel);
@@ -423,6 +497,9 @@ const html = `<!doctype html>
   the plant and nothing else.</p>
 ${diagram}
   <div class="sentence">${liveSentence}</div>
+${checksTable}
+  <p>${plantSentence}</p>
+${anatomy}
 
   <h2>A value is not a fact until you store the viewpoint</h2>
   <p>In 1838 Friedrich Bessel published the first stellar parallax: 0.3136 arcseconds
@@ -446,6 +523,10 @@ ${diagram}
   corpus, with live-fire, positive, and negative controls on the audit method itself
   &mdash; expose no acceptance instant and no way to ask an as-of question at all.</p>
   <div class="sentence vendor">${auditSentence}</div>
+  <div class="sentence vendor">${esc(audit.notes)} <span class="muted">&mdash; the row&#39;s own notes field, verbatim.</span></div>
+  <p class="muted">Method controls held on the audit itself: ${["live_fire", "positive", "negative"].map((c) =>
+    `<code>${c}</code>&nbsp;${audit.controls[c] ? "&#10003;" : '<span class="badv">&#10007;</span>'}`).join(" · ")}.
+  Corpus: ${esc(audit.doc_scope)}.</p>
 
   <h2>The three failures</h2>
   <p>Every fundamentals read surface handles the viewpoint problem in one of four ways.
@@ -473,7 +554,7 @@ ${diagram}
   <p>Gate verdicts &mdash; each resolves to a replayable run (commit, content hash):</p>
   <div class="panel reveal"><table>
     <caption>GATE_VERDICT &middot; gate output, never hand-edited</caption>
-    <thead><tr><th>Result</th><th>Surface</th><th>Lane</th><th>Cell</th>
+    <thead><tr><th>Result</th><th>Surface</th><th>Lane</th><th>Cell</th><th>Scope</th>
       <th>As-of rows</th><th>Violations by check</th><th>Ran</th>
       <th>Gate commit</th><th>Content hash</th><th>Provenance</th></tr></thead>
     <tbody>${verdictRowsHtml}
