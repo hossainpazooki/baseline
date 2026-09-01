@@ -299,3 +299,14 @@ conflict, the amendment is what is built and enforced.
     cell derives PARTIAL (held by the named control "lone live cell passes"),
     02 to the twin row's plant and violation vector, 03 to the derived lane
     status and the live cell's rows/viewpoint. Interpolated, never typed.
+16. **2026-09-01, evening.** Layout inversion so the card grid stops being
+    buried: the checks table, plant sentence, and run-anatomy table moved
+    into a native `<details>` disclosure directly under the claim sentence
+    (nothing removed, one click away, works without JS); the card grid now
+    follows the diagram immediately and gained a nav anchor. Two prose
+    sections were deleted as duplicative rather than moved: the Bessel
+    paragraph (card 03 carries the standard; the essay carries the story)
+    and the standalone vendor-finding section (card 00 carries the essence;
+    the audit row's sentence, verbatim notes, method controls, and corpus
+    now live in a second disclosure attached to the SURFACE_AUDIT table).
+    The 1.51% badged measurement kept its own section, after the cards.

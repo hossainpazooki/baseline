@@ -483,6 +483,20 @@ const html = `<!doctype html>
   }
   .unsigned{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em}
   .okv{color:var(--ok);font-weight:600}
+  details.rundetail{
+    border:1px solid var(--line);border-radius:10px;background:var(--bg-2);
+    margin:18px 0;padding:0 18px;
+  }
+  details.rundetail summary{
+    cursor:pointer;font-family:var(--mono);font-size:11.5px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    padding:13px 0;user-select:none;
+  }
+  details.rundetail summary:hover{color:var(--gold-text)}
+  details.rundetail[open] summary{color:var(--gold-text);border-bottom:1px dashed var(--line)}
+  details.rundetail > p{margin:12px 2px}
+  details.rundetail > .panel{margin:14px 0}
+  details.rundetail > *:last-child{margin-bottom:16px}
   .fails{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:8px}
   @media(max-width:760px){.fails{grid-template-columns:1fr}}
   .fail{
@@ -591,6 +605,7 @@ const html = `<!doctype html>
     <nav class="nav-links">
       <a href="${SITE}/baseline/" class="hideable">essay</a>
       <a href="#claim" class="hideable">claim path</a>
+      <a href="#failures" class="hideable">baselines</a>
       <a href="#status" class="hideable">status</a>
       <a href="#ledger" class="hideable">ledger</a>
       <a href="${SITE}/intent/" class="hideable">/intent</a>
@@ -655,18 +670,18 @@ const html = `<!doctype html>
   the plant and nothing else.</p>
 ${diagram}
   <div class="sentence">${liveSentence}</div>
+  <details class="rundetail reveal">
+    <summary>open the run &mdash; the checks, the plant, and every field of the two rows</summary>
 ${checksTable}
-  <p>${plantSentence}</p>
+    <p>${plantSentence}</p>
 ${anatomy}
+  </details>
 
-  <h2>A value is not a fact until you store the viewpoint</h2>
-  <p>In 1838 Friedrich Bessel published the first stellar parallax: 0.3136 arcseconds
-  for the star 61&nbsp;Cygni. The accepted value today is 0.286. The revision embarrassed
-  nobody, because astronomy records <em>who measured what, when, from where</em> &mdash; the
-  viewpoint is stored beside the value, so a better viewpoint replaces it without
-  rewriting history. Financial fundamentals data routinely fails this standard: a
-  restated revenue figure silently overwrites the number you actually knew at the time,
-  and any backtest built on the feed quietly reads the future.</p>
+  <h2 id="failures">How baselines fail &mdash; and the one that holds</h2>
+  <p>Every fundamentals read surface handles the viewpoint problem in one of four
+  ways. Three of them lose the claim &mdash; each in a different place &mdash; and each
+  broken variant below is pinned to what this ledger actually holds against it.</p>
+${failCards}
 
   <h2>What a feed without a viewpoint costs <span class="badge">reported, not on the ledger</span></h2>
   <p>Measured on a sample of 17,787 filer-quarters from the same surface: when revisions
@@ -674,23 +689,6 @@ ${anatomy}
   <em>flips sign</em>. A quarter your feed shows as growth was, on the day you would have
   traded it, a decline. This measurement is reported from PARALLAX study&nbsp;001 and does
   not yet have a ledger row of its own; until it does, it carries this badge.</p>
-
-  <h2>The vendor finding <span class="pill audit">SURFACE_AUDIT</span></h2>
-  <p>A commercial market-data vendor timestamps trades to the nanosecond. Its
-  fundamentals and filings endpoints &mdash; audited across its full stocks documentation
-  corpus, with live-fire, positive, and negative controls on the audit method itself
-  &mdash; expose no acceptance instant and no way to ask an as-of question at all.</p>
-  <div class="sentence vendor">${auditSentence}</div>
-  <div class="sentence vendor">${esc(audit.notes)} <span class="muted">&mdash; the row&#39;s own notes field, verbatim.</span></div>
-  <p class="muted">Method controls held on the audit itself: ${["live_fire", "positive", "negative"].map((c) =>
-    `<code>${c}</code>&nbsp;${audit.controls[c] ? "&#10003;" : '<span class="badv">&#10007;</span>'}`).join(" · ")}.
-  Corpus: ${esc(audit.doc_scope)}.</p>
-
-  <h2>How baselines fail &mdash; and the one that holds</h2>
-  <p>Every fundamentals read surface handles the viewpoint problem in one of four
-  ways. Three of them lose the claim &mdash; each in a different place &mdash; and each
-  broken variant below is pinned to what this ledger actually holds against it.</p>
-${failCards}
 
   <h2 id="status">Status by lane</h2>
   <p>Surface under test: <code>${esc(surface)}</code>. A lane is CLAIMABLE only when both
@@ -723,6 +721,14 @@ ${failCards}
     <tbody>${auditRowHtml}
     </tbody>
   </table></div>
+  <details class="rundetail reveal">
+    <summary>open the audit &mdash; the row&#39;s sentence, its notes verbatim, method controls, corpus</summary>
+    <div class="sentence vendor">${auditSentence}</div>
+    <div class="sentence vendor">${esc(audit.notes)} <span class="muted">&mdash; the row&#39;s own notes field, verbatim.</span></div>
+    <p class="muted">Method controls held on the audit itself: ${["live_fire", "positive", "negative"].map((c) =>
+      `<code>${c}</code>&nbsp;${audit.controls[c] ? "&#10003;" : '<span class="badv">&#10007;</span>'}`).join(" · ")}.
+    Corpus: ${esc(audit.doc_scope)}.</p>
+  </details>
 </main>
 
 <footer>
