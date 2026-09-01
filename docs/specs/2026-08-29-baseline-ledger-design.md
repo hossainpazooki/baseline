@@ -289,3 +289,13 @@ conflict, the amendment is what is built and enforced.
     layout cannot hide a divergence), and the audit row's `doc_scope`,
     method-control booleans, and verbatim `notes`. Every added value is
     interpolated from a row; no new hand-typed figures.
+15. **2026-09-01, later still.** The prose-only "three failures" paragraph
+    became the essay's broken-baseline card grid, extended by one: figures
+    00-02 are the essay's variants verbatim (zero / unknown `B = ?` /
+    flexing), and figure 03 is variant 01 with the dashed red `B = ?`
+    replaced by a solid gold `B = cited` — the held baseline. Each card's
+    "on this ledger" half is bound to evidence: 00 to the audit row's
+    results/corpus/dating-field, 01 to the checker rule that a lone live
+    cell derives PARTIAL (held by the named control "lone live cell passes"),
+    02 to the twin row's plant and violation vector, 03 to the derived lane
+    status and the live cell's rows/viewpoint. Interpolated, never typed.

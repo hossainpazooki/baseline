@@ -186,6 +186,127 @@ const anatomy = (live && twin) ? `
     </tbody>
   </table></div>` : "";
 
+// --- the four baselines, drawn ---------------------------------------------
+// Figures 00-02 are the essay's broken-baseline variants, verbatim; figure 03
+// is 01 with the dashed red "B = ?" replaced by a solid gold "B = cited" --
+// the whole argument as a one-glyph diff. The "on this ledger" half of each
+// card is bound to a row or to a checker rule held by a named control.
+const FIGS = {
+  zero: `<svg viewBox="0 0 220 112" aria-hidden="true">
+      <line class="g-bg" x1="30" y1="20" x2="190" y2="20"/>
+      <line class="g-tick" x1="30" y1="15" x2="30" y2="25"/>
+      <line class="g-tick" x1="190" y1="15" x2="190" y2="25"/>
+      <line class="g-sight" x1="110" y1="92" x2="110" y2="20"/>
+      <path class="g-obj" d="M110 48 l7 9 -7 9 -7 -9 z"/>
+      <circle class="g-nd" cx="110" cy="92" r="5.5"/>
+    </svg>`,
+  unknown: `<svg viewBox="0 0 220 112" aria-hidden="true">
+      <line class="g-bg" x1="30" y1="20" x2="190" y2="20"/>
+      <line class="g-tick" x1="30" y1="15" x2="30" y2="25"/>
+      <line class="g-tick" x1="190" y1="15" x2="190" y2="25"/>
+      <line class="g-sight" x1="55" y1="92" x2="165" y2="20"/>
+      <line class="g-sight" x1="165" y1="92" x2="55" y2="20"/>
+      <circle class="g-pp" cx="165" cy="20" r="2.8"/>
+      <circle class="g-pp" cx="55" cy="20" r="2.8"/>
+      <line class="g-shift" x1="55" y1="9" x2="165" y2="9"/>
+      <line class="g-shift" x1="55" y1="5" x2="55" y2="13"/>
+      <line class="g-shift" x1="165" y1="5" x2="165" y2="13"/>
+      <path class="g-obj" d="M110 48 l7 9 -7 9 -7 -9 z"/>
+      <circle class="g-nd" cx="55" cy="92" r="5.5"/>
+      <circle class="g-nd" cx="165" cy="92" r="5.5"/>
+      <line class="g-base bad" x1="63" y1="92" x2="157" y2="92"/>
+      <text class="g-bad-txt" x="110" y="108" text-anchor="middle">B = ?</text>
+    </svg>`,
+  flex: `<svg viewBox="0 0 220 112" aria-hidden="true">
+      <line class="g-bg" x1="30" y1="20" x2="190" y2="20"/>
+      <line class="g-tick" x1="30" y1="15" x2="30" y2="25"/>
+      <line class="g-tick" x1="190" y1="15" x2="190" y2="25"/>
+      <line class="g-sight" x1="55" y1="86" x2="185" y2="20"/>
+      <line class="g-sight" x1="165" y1="96" x2="74" y2="20"/>
+      <path class="g-obj" d="M110 48 l7 9 -7 9 -7 -9 z"/>
+      <path class="g-ghost" d="M124 50 l7 9 -7 9 -7 -9 z"/>
+      <circle class="g-nd" cx="55" cy="86" r="5.5"/>
+      <circle class="g-nd" cx="165" cy="96" r="5.5"/>
+      <path class="g-base flex" fill="none" d="M62 88 Q 88 78 110 88 T 158 94"/>
+    </svg>`,
+  held: `<svg viewBox="0 0 220 112" aria-hidden="true">
+      <line class="g-bg" x1="30" y1="20" x2="190" y2="20"/>
+      <line class="g-tick" x1="30" y1="15" x2="30" y2="25"/>
+      <line class="g-tick" x1="190" y1="15" x2="190" y2="25"/>
+      <line class="g-sight" x1="55" y1="92" x2="165" y2="20"/>
+      <line class="g-sight" x1="165" y1="92" x2="55" y2="20"/>
+      <circle class="g-pp" cx="165" cy="20" r="2.8"/>
+      <circle class="g-pp" cx="55" cy="20" r="2.8"/>
+      <line class="g-shift" x1="55" y1="9" x2="165" y2="9"/>
+      <line class="g-shift" x1="55" y1="5" x2="55" y2="13"/>
+      <line class="g-shift" x1="165" y1="5" x2="165" y2="13"/>
+      <path class="g-obj" d="M110 48 l7 9 -7 9 -7 -9 z"/>
+      <circle class="g-nd" cx="55" cy="92" r="5.5"/>
+      <circle class="g-nd" cx="165" cy="92" r="5.5"/>
+      <line class="g-base" x1="63" y1="92" x2="157" y2="92"/>
+      <text class="g-au" x="110" y="108" text-anchor="middle">B = cited</text>
+    </svg>`,
+};
+
+const failCards = `
+  <div class="fails">
+    <article class="fail reveal">
+      <div class="fl-head"><span class="fl-num">00</span><span class="fl-name">zero baseline</span></div>
+      <div class="fl-fig">${FIGS.zero}</div>
+      <div class="fl-half"><span class="fl-cap">in the instrument</span>
+        <p>One viewpoint. Nothing shifts; a near star and the far background are
+        indistinguishable. There is no measurement to get wrong.</p></div>
+      <div class="fl-half"><span class="fl-cap sys">on this ledger</span>
+        <p><code>${esc(audit.surface)}</code> (${esc(audit.vendor_alias)}):
+        ${audit.results.map((r) => `<span class="pill audit">${esc(r)}</span>`).join(" ")}
+        across ${n(audit.docs_searched)} documentation pages. The only date on a
+        fundamentals record is <code>${esc(audit.field_quoted)}</code> &mdash; restatements
+        overwrite in place, so lookahead has nowhere to show up and
+        <b>quietly becomes the dataset</b>.</p></div>
+    </article>
+    <article class="fail reveal">
+      <div class="fl-head"><span class="fl-num">01</span><span class="fl-name">unknown baseline</span></div>
+      <div class="fl-fig">${FIGS.unknown}</div>
+      <div class="fl-half"><span class="fl-cap">in the instrument</span>
+        <p>The shift is right there on the plate, but with no citable separation it
+        never becomes a distance &mdash; <b>a number with no meaning</b>.</p></div>
+      <div class="fl-half"><span class="fl-cap sys">on this ledger</span>
+        <p>A green that has <b>never been shown able to go red</b> cites nothing, so
+        the checker refuses it: a live cell arriving without its twin derives
+        <span class="pill partial">PARTIAL</span>, never
+        <span class="pill claimable">CLAIMABLE</span> &mdash; a rule held by its own
+        named control in <code>test-ledger.mjs</code>.</p></div>
+    </article>
+    <article class="fail reveal">
+      <div class="fl-head"><span class="fl-num">02</span><span class="fl-name">flexing baseline</span></div>
+      <div class="fl-fig">${FIGS.flex}</div>
+      <div class="fl-half"><span class="fl-cap">in the instrument</span>
+        <p>The separation moves between the two observations and the instrument
+        manufactures shift &mdash; <b>false parallax</b>, indistinguishable from signal on
+        a single pair of plates.</p></div>
+      <div class="fl-half"><span class="fl-cap sys">on this ledger</span>
+        <p>The twin exists to catch exactly this: <code>${esc(twin.planted.mutation)}</code>
+        moved the boundary by ${n(twin.planted.mutated_rows)} row and the gate went
+        <span class="pill red">${esc(twin.result)}</span> with violations
+        <code>${fmtChecks(twin.checks)}</code> &mdash; the plant, the whole plant, and
+        nothing but the plant.</p></div>
+    </article>
+    <article class="fail reveal">
+      <div class="fl-head"><span class="fl-num ok">03</span><span class="fl-name">stored viewpoint</span></div>
+      <div class="fl-fig">${FIGS.held}</div>
+      <div class="fl-half"><span class="fl-cap">in the instrument</span>
+        <p>Bessel&#39;s standard: the separation is surveyed and cited beside the
+        value, so a better viewpoint later <b>replaces without rewriting</b>.</p></div>
+      <div class="fl-half"><span class="fl-cap sys">on this ledger</span>
+        <p>Lane ${live.lane} derives
+        <span class="pill ${statusByLane[live.lane].toLowerCase()}">${esc(statusByLane[live.lane])}</span>
+        today: live <span class="pill green">${esc(live.result)}</span> over
+        ${n(live.rows)} as-of rows at d&nbsp;=&nbsp;${day(live.params.d)}, twin red for
+        the planted reason. One surface, one lane, one dated run &mdash; <b>and no more
+        than that</b>.</p></div>
+    </article>
+  </div>`;
+
 const verdictRowsHtml = verdicts.map(({ row, rel }) => `
       <tr>
         <td><span class="pill ${row.result.toLowerCase()}">${row.result}</span></td>
@@ -362,6 +483,43 @@ const html = `<!doctype html>
   }
   .unsigned{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em}
   .okv{color:var(--ok);font-weight:600}
+  .fails{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:8px}
+  @media(max-width:760px){.fails{grid-template-columns:1fr}}
+  .fail{
+    border:1px solid var(--line);border-radius:10px;background:var(--panel);
+    box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
+  }
+  .fail .fl-head{
+    padding:13px 20px;border-bottom:1px solid var(--line);background:var(--panel-2);
+    display:flex;align-items:baseline;gap:10px;
+  }
+  .fail .fl-num{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--block)}
+  .fail .fl-num.ok{color:var(--ok)}
+  .fail .fl-name{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);letter-spacing:.02em}
+  .fl-fig{padding:14px 18px 2px}
+  .fl-fig svg{display:block;width:100%;height:auto;max-width:280px;margin:0 auto}
+  .fail .fl-half{padding:15px 20px}
+  .fail .fl-half + .fl-half{border-top:1px dashed var(--line)}
+  .fail .fl-cap{
+    font-family:var(--mono);font-size:10px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  }
+  .fail .fl-cap.sys{color:var(--blue)}
+  .fail p{margin-top:7px;font-size:13px;color:var(--text-2);line-height:1.6;max-width:none}
+  .fail p b{color:var(--text);font-weight:600}
+  .g-sight{stroke:var(--blue);stroke-width:1.3;opacity:.75}
+  .g-bg{stroke:var(--line);stroke-width:1}
+  .g-tick{stroke:var(--muted);stroke-width:1}
+  .g-shift{stroke:var(--text);stroke-width:1.3}
+  .g-base{stroke:var(--gold);stroke-width:2.4}
+  .g-base.bad{stroke:var(--block);stroke-dasharray:4 4}
+  .g-base.flex{stroke:var(--block)}
+  .g-obj{fill:var(--gold)}
+  .g-ghost{fill:none;stroke:var(--block);stroke-width:1.2;opacity:.7}
+  .g-nd{fill:var(--nd-fill);stroke:var(--blue);stroke-width:1.4}
+  .g-pp{fill:var(--blue)}
+  .g-bad-txt{font-family:var(--mono);font-size:11px;font-weight:600;fill:var(--block)}
+  .g-au{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;fill:var(--gold-text)}
   .badv{color:var(--block);font-weight:600}
   td.hash{white-space:normal;word-break:break-all;max-width:34ch}
 
@@ -528,15 +686,11 @@ ${anatomy}
     `<code>${c}</code>&nbsp;${audit.controls[c] ? "&#10003;" : '<span class="badv">&#10007;</span>'}`).join(" · ")}.
   Corpus: ${esc(audit.doc_scope)}.</p>
 
-  <h2>The three failures</h2>
-  <p>Every fundamentals read surface handles the viewpoint problem in one of four ways.
-  <strong>Zero baseline:</strong> restatements overwrite in place &mdash; the audited
-  vendor&#39;s fundamentals feed above. <strong>Unknown baseline:</strong> history exists
-  somewhere, but no as-of query can reach it, so you cannot prove what you knew.
-  <strong>Flexing baseline:</strong> an as-of mode exists but its boundary moves &mdash; the
-  gate&#39;s planted-error twin exists precisely to catch this class.
-  <strong>Stored viewpoint:</strong> Bessel&#39;s standard, and the property the green row
-  above certifies for one surface, one lane, one dated run.</p>
+  <h2>How baselines fail &mdash; and the one that holds</h2>
+  <p>Every fundamentals read surface handles the viewpoint problem in one of four
+  ways. Three of them lose the claim &mdash; each in a different place &mdash; and each
+  broken variant below is pinned to what this ledger actually holds against it.</p>
+${failCards}
 
   <h2 id="status">Status by lane</h2>
   <p>Surface under test: <code>${esc(surface)}</code>. A lane is CLAIMABLE only when both
