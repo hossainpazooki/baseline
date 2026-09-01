@@ -25,12 +25,12 @@ const REPOS = {
   vantage: {
     name: "VANTAGE",
     repo: "hossainpazooki/pit-fundamentals-lakehouse",
-    role: "builds the point-in-time surface under test",
+    role: "builds the point-in-time store of SEC fundamentals under test",
   },
   parallax: {
     name: "PARALLAX",
     repo: "hossainpazooki/pit-revision-examiner",
-    role: "runs the gate that produces every verdict row",
+    role: "runs the gate that produced every verdict row below",
   },
 };
 
@@ -457,6 +457,11 @@ const html = `<!doctype html>
   }
   .intro h1 .dim{color:var(--muted)}
   .lede{font-size:18px;color:var(--text-2);max-width:64ch;margin:0}
+  .intro-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:36px;align-items:center}
+  @media(max-width:760px){.intro-grid{grid-template-columns:1fr}}
+  .hero-fig{margin:0}
+  .hero-fig svg{display:block;width:100%;height:auto;max-width:340px;margin:0 auto}
+  .g-txt{font-family:var(--mono);font-size:10.5px;fill:var(--muted)}
   .lede b{color:var(--text);font-weight:600}
   h2{
     font-family:var(--display);font-size:26px;font-weight:600;
@@ -624,17 +629,50 @@ const html = `<!doctype html>
   <section class="intro">
     <span class="eyebrow">conformance ledger &middot; the evidence layer of vantage &times; parallax</span>
     <h1>A green gate proves nothing.<br><span class="dim">Until its twin goes red for the planted reason.</span></h1>
-    <p class="lede">The <a href="${SITE}/baseline/">essay</a> makes the argument; this page
-    is the evidence: <b>dated, machine-checked rows</b> of what a point-in-time gate found
-    on a named fundamentals surface &mdash; and what it caught on a copy carrying one
-    planted error. Every number here is read out of a row you can open, and prose the
-    rows don&#39;t back wears a badge saying so. It reports on surfaces; it serves no data.</p>
+    <div class="intro-grid">
+      <p class="lede">Company fundamentals get restated: the revenue a data feed shows you
+      today is often not the number anyone could have known at the time, and a backtest
+      built on such a feed quietly reads the future. This page is a <b>public test
+      record</b> for one alternative &mdash; dated rows showing a specific store of SEC
+      fundamentals answering <em>&ldquo;what was known on day&nbsp;D?&rdquo;</em> correctly,
+      checked by a gate that was also run against a deliberately corrupted copy to prove
+      it can catch a lie. Every number is read out of a row you can open; any claim the
+      rows don&#39;t back wears a badge. The <a href="${SITE}/baseline/">essay</a> tells
+      the story; this page keeps the receipts.</p>
+      <figure class="hero-fig" aria-label="A parallax construction. Two observers on a solid gold baseline read the same filer-quarter: one as of day D, one today. Their sight lines cross at the fact and project it to two different positions on a background line; the bracket between the projections is the restatement. The baseline is labeled B = cited.">
+        <svg viewBox="0 0 340 210" aria-hidden="true">
+          <line class="g-bg" x1="40" y1="28" x2="300" y2="28"/>
+          <line class="g-tick" x1="40" y1="22" x2="40" y2="34"/>
+          <line class="g-tick" x1="300" y1="22" x2="300" y2="34"/>
+          <circle class="g-pp" cx="115" cy="28" r="2.8"/>
+          <circle class="g-pp" cx="225" cy="28" r="2.8"/>
+          <line class="g-shift" x1="115" y1="14" x2="225" y2="14"/>
+          <line class="g-shift" x1="115" y1="10" x2="115" y2="18"/>
+          <line class="g-shift" x1="225" y1="10" x2="225" y2="18"/>
+          <text class="g-txt" x="170" y="8" text-anchor="middle">the restatement</text>
+          <line class="g-sight" x1="85" y1="168" x2="225" y2="28"/>
+          <line class="g-sight" x1="255" y1="168" x2="115" y2="28"/>
+          <path class="g-obj" d="M170 80 l8 10 -8 10 -8 -10 z"/>
+          <text class="g-txt" x="170" y="118" text-anchor="middle">same filer-quarter</text>
+          <circle class="g-nd" cx="85" cy="168" r="6"/>
+          <circle class="g-nd" cx="255" cy="168" r="6"/>
+          <line class="g-base" x1="94" y1="168" x2="246" y2="168"/>
+          <text class="g-au" x="170" y="158" text-anchor="middle">B = cited</text>
+          <text class="g-txt" x="85" y="192" text-anchor="middle">read as-of day D</text>
+          <text class="g-txt" x="255" y="192" text-anchor="middle">read today</text>
+        </svg>
+      </figure>
+    </div>
   </section>
 
   <h2 id="pieces">The three pieces</h2>
-  <p>Three repositories, one claim path. A reviewer can follow it end to end: the
-  surface is built in one repo, interrogated by a gate in another, and only what the
-  gate actually returned is published here.</p>
+  <p>Three public repositories share the work, and a reviewer can follow the whole
+  chain. <b>VANTAGE</b> builds a point-in-time store of SEC fundamentals &mdash; every
+  value keeps the date it became knowable, so the store can be read &ldquo;as of&rdquo;
+  any day. <b>PARALLAX</b> is the test harness that interrogates that store: does an
+  as-of read leak anything from the future, lose history, or hide a restatement?
+  <b>BASELINE</b> &mdash; this page &mdash; publishes only what those tests returned,
+  each claim tied to a row below by a field you can check yourself.</p>
   <div class="panel reveal"><table>
     <caption>how each piece is bound to these rows</caption>
     <thead><tr><th>Piece</th><th>Role</th><th>Bound by</th></tr></thead>
