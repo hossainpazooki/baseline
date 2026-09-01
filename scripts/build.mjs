@@ -17,6 +17,23 @@ const OUT = join(ROOT, "index.html");
 
 const LANES = { 1: "local Parquet", 2: "Unity Catalog", 3: "Snowflake over Iceberg" };
 
+// The two upstream repos this ledger reports on. Public; a reviewer can open
+// them. Roles here are structural facts about which repo plays which part --
+// the surface identifier and gate commit that back them are interpolated from
+// the rows below, never typed.
+const REPOS = {
+  vantage: {
+    name: "VANTAGE",
+    repo: "hossainpazooki/pit-fundamentals-lakehouse",
+    role: "builds the point-in-time surface under test",
+  },
+  parallax: {
+    name: "PARALLAX",
+    repo: "hossainpazooki/pit-revision-examiner",
+    role: "runs the gate that produces every verdict row",
+  },
+};
+
 const esc = (s) => String(s).replace(/[&<>"']/g,
   (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const n = (x) => Number(x).toLocaleString("en-US");
@@ -42,7 +59,10 @@ const surface = surfaceKey.split(":")[0];
 const { live, twin } = cells;
 const audit = audits[0].row;
 
-const statusByLane = { 1: deriveStatus(cells), 2: "UNCLAIMED", 3: "UNCLAIMED" };
+const statusByLane = Object.fromEntries(
+  Object.keys(LANES).map((lane) =>
+    [lane, deriveStatus(groups.get(`${surface}:lane${lane}`) ?? {})]),
+);
 
 // --- sentence forms (design §4, generated) --------------------------------
 const liveSentence = live
@@ -161,6 +181,36 @@ const html = `<!doctype html>
   <p class="tagline">A conformance ledger: dated rows stating what a point-in-time
   gate has shown about named read surfaces. It reports on surfaces; it serves no
   data. Nothing on this page claims more than the rows below.</p>
+
+  <h2>The three pieces</h2>
+  <p>Three repositories, one claim path. A reviewer can follow it end to end:
+  the surface is built in one repo, interrogated by a gate in another, and only
+  what the gate actually returned is published here.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Piece</th><th>Role</th><th>Bound to these rows by</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://github.com/${esc(REPOS.vantage.repo)}">${esc(REPOS.vantage.name)}</a></td>
+        <td>${esc(REPOS.vantage.role)}</td>
+        <td><code>surface</code> = <code>${esc(surface)}</code></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/${esc(REPOS.parallax.repo)}">${esc(REPOS.parallax.name)}</a></td>
+        <td>${esc(REPOS.parallax.role)}</td>
+        <td><code>parallax_sha</code> = <code class="mono">${esc(live ? live.parallax_sha.slice(0, 12) : "n/a")}</code></td>
+      </tr>
+      <tr>
+        <td>BASELINE</td>
+        <td>publishes the rows and refuses to outrun them</td>
+        <td>this page, generated from <a href="ledger/SOURCE.md">ledger/</a></td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Neither upstream repo is a dependency of this page: the rows
+  are hand-copied across a hash-bound seam described in
+  <a href="ledger/SOURCE.md">SOURCE.md</a>. Replaying a row needs the VANTAGE
+  gold surface, which is not published; the <code>content_hash</code> on each
+  row is what a reader without it can still check.</p>
 
   <h2>A value is not a fact until you store the viewpoint</h2>
   <p>In 1838 Friedrich Bessel published the first stellar parallax: 0.3136

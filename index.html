@@ -65,6 +65,36 @@
   gate has shown about named read surfaces. It reports on surfaces; it serves no
   data. Nothing on this page claims more than the rows below.</p>
 
+  <h2>The three pieces</h2>
+  <p>Three repositories, one claim path. A reviewer can follow it end to end:
+  the surface is built in one repo, interrogated by a gate in another, and only
+  what the gate actually returned is published here.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Piece</th><th>Role</th><th>Bound to these rows by</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><a href="https://github.com/hossainpazooki/pit-fundamentals-lakehouse">VANTAGE</a></td>
+        <td>builds the point-in-time surface under test</td>
+        <td><code>surface</code> = <code>vantage-gold-local-parquet</code></td>
+      </tr>
+      <tr>
+        <td><a href="https://github.com/hossainpazooki/pit-revision-examiner">PARALLAX</a></td>
+        <td>runs the gate that produces every verdict row</td>
+        <td><code>parallax_sha</code> = <code class="mono">25e12b872eb5</code></td>
+      </tr>
+      <tr>
+        <td>BASELINE</td>
+        <td>publishes the rows and refuses to outrun them</td>
+        <td>this page, generated from <a href="ledger/SOURCE.md">ledger/</a></td>
+      </tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Neither upstream repo is a dependency of this page: the rows
+  are hand-copied across a hash-bound seam described in
+  <a href="ledger/SOURCE.md">SOURCE.md</a>. Replaying a row needs the VANTAGE
+  gold surface, which is not published; the <code>content_hash</code> on each
+  row is what a reader without it can still check.</p>
+
   <h2>A value is not a fact until you store the viewpoint</h2>
   <p>In 1838 Friedrich Bessel published the first stellar parallax: 0.3136
   arcseconds for the star 61&nbsp;Cygni. The accepted value today is 0.286. The
@@ -81,7 +111,7 @@
   acceptance evidence, and counts disagreements. A green gate is only credited
   when the same gate, pointed at a copy of the surface with one deliberately
   planted error, goes red — catching exactly the plant and nothing else.</p>
-  <div class="sentence gate">On 2026-08-31, the gate read 440,661 as-of rows of <code>vantage-gold-local-parquet</code> and found GREEN. The same check, run on a copy with one planted error, went RED.</div>
+  <div class="sentence gate">On 2026-09-01, the gate read 440,661 as-of rows of <code>vantage-gold-local-parquet</code> and found GREEN. The same check, run on a copy with one planted error, went RED.</div>
 
   <h2>What a feed without a viewpoint costs <span class="badge">reported, not on the ledger</span></h2>
   <p>Measured on a sample of 17,787 filer-quarters from the same surface:
@@ -150,10 +180,10 @@
         <td>live</td>
         <td class="num">440,661</td>
         <td><code>no_future_accepted</code>:0 <code>as_of_monotonicity</code>:0 <code>restatement_visibility</code>:0</td>
-        <td>2026-08-31</td>
-        <td class="mono">71d3c9dbbd5b <span class='warn'>(dirty)</span></td>
+        <td>2026-09-01</td>
+        <td class="mono">25e12b872eb5</td>
         <td class="mono" title="sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">3fcfb3c3c28a…</td>
-        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-live-20260831T184617.488009Z.json">row</a> <span class="unsigned">hash-anchored, unsigned</span></td>
+        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-live-20260901T174848.951466Z.json">row</a> <span class="unsigned">hash-anchored, unsigned</span></td>
       </tr>
       <tr>
         <td><span class="pill red">RED</span></td>
@@ -162,10 +192,10 @@
         <td>twin</td>
         <td class="num">440,661</td>
         <td><code>no_future_accepted</code>:1 <code>as_of_monotonicity</code>:0 <code>restatement_visibility</code>:1</td>
-        <td>2026-08-31</td>
-        <td class="mono">71d3c9dbbd5b <span class='warn'>(dirty)</span></td>
+        <td>2026-09-01</td>
+        <td class="mono">25e12b872eb5</td>
         <td class="mono" title="sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">01be4edf771b…</td>
-        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-twin-20260831T184617.935133Z.json">row</a> <span class="unsigned">hash-anchored, unsigned</span></td>
+        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-twin-20260901T174849.431640Z.json">row</a> <span class="unsigned">hash-anchored, unsigned</span></td>
       </tr>
     </tbody>
   </table></div>
