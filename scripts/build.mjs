@@ -348,15 +348,15 @@ const statusBoard = Object.entries(statusByLane).map(([lane, st]) => `
       </tr>`).join("");
 
 const html = `<!doctype html>
-<html lang="en" data-theme="ink">
+<html lang="en" data-theme="paper">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#0A1424" id="metatheme" />
+<meta name="theme-color" content="#F6F4EE" id="metatheme" />
 <link rel="icon" href="${SITE}/favicon.ico" sizes="any" />
 <title>BASELINE — the conformance ledger</title>
 <meta name="description" content="Dated, machine-checked rows stating what a point-in-time gate has shown about named read surfaces. The evidence layer under VANTAGE and PARALLAX: nothing on this page may claim more than the rows." />
-<script>(function(){var t='ink';try{var s=localStorage.getItem('hp-theme');t=s==='paper'?'paper':'ink'}catch(e){}var d=document.documentElement;d.dataset.theme=t;d.classList.add('js');})();</script>
+<script>(function(){var t='paper';try{var s=localStorage.getItem('hp-theme')||localStorage.getItem('baseline-theme');t=s==='ink'?'ink':'paper'}catch(e){}var d=document.documentElement;d.dataset.theme=t;d.classList.add('js');})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600&display=swap" rel="stylesheet" />
@@ -617,8 +617,8 @@ const html = `<!doctype html>
       <a href="https://github.com/${REPOS.vantage.repo}" class="ext" target="_blank" rel="noopener">VANTAGE&nbsp;&#8599;</a>
       <a href="https://github.com/${REPOS.parallax.repo}" class="ext" target="_blank" rel="noopener">PARALLAX&nbsp;&#8599;</a>
       <div class="theme-sw" role="group" aria-label="Theme">
-        <button type="button" data-set="ink" aria-pressed="true">ink</button>
-        <button type="button" data-set="paper" aria-pressed="false">paper</button>
+        <button type="button" data-set="paper" aria-pressed="true">paper</button>
+        <button type="button" data-set="ink" aria-pressed="false">ink</button>
       </div>
     </nav>
   </div>
@@ -807,7 +807,7 @@ ${failCards}
   swBtns.forEach(function(b){
     b.addEventListener('click', function(){ applyTheme(b.dataset.set); });
   });
-  applyTheme(document.documentElement.dataset.theme === 'paper' ? 'paper' : 'ink');
+  applyTheme(document.documentElement.dataset.theme === 'ink' ? 'ink' : 'paper');
 })();
 </script>
 </body>
