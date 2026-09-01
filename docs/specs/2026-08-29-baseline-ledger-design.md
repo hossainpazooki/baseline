@@ -259,3 +259,22 @@ conflict, the amendment is what is built and enforced.
     item 12(a)'s clean emission pending a PARALLAX commit and a follow-up
     clean re-emit; (d) GitHub Pages was enabled, publishing `main` root at
     https://hossainpazooki.github.io/baseline/.
+13. **2026-09-01.** Supersedes item 12(c)'s open end. (a) The twin-scope fix
+    was committed in PARALLAX as `25e12b8` and both lane-1 rows were
+    re-emitted from the clean tree, so they are stamped
+    `parallax_worktree: clean` and the twin names its real basis
+    (`staged twin over cik % 97 == 0 sample`); the live cell's
+    `content_hash` reproduced for a fourth independent time, now recorded as
+    its own paragraph in `ledger/SOURCE.md`. (b) The de-naming invariant
+    became an executable gate, `scripts/denaming-sweep.sh`, reading a
+    gitignored `.denylist`; the previous hand-run grep had its pattern
+    written into its own documentation, which both made it fire on itself and
+    committed the very term the policy forbids. A missing or empty list is
+    UNEVALUABLE (exit 2), never clean. (c) The page gained a "three pieces"
+    orientation section naming VANTAGE and PARALLAX with links, each bound to
+    the rows by an interpolated field (`surface`, `parallax_sha`). (d) The
+    canonical host moved from GitHub Pages to Vercel
+    (<https://baseline-beryl.vercel.app/>), whose build command runs the
+    controls, the ledger gate and `build --check`, making the page-may-not-
+    outrun-its-rows invariant enforced by the host and not only by CI. Pages
+    was retired; superseding item 12(d).

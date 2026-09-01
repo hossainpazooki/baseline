@@ -1,5 +1,16 @@
 # STATUS
 
+- **2026-09-01** — Canonical host moved to Vercel:
+  <https://baseline-beryl.vercel.app/>, deployed from `main` on push behind a
+  build command that runs the negative controls, the ledger gate and
+  `build --check` — so a ledger that contradicts the page cannot reach the
+  live URL. GitHub Pages retired; it served the same page from 2026-08-31.
+  Also this day: the de-naming sweep became a real gate
+  (`scripts/denaming-sweep.sh` over a gitignored `.denylist`, missing or empty
+  list is UNEVALUABLE, never clean), and the page gained an orientation
+  section naming VANTAGE and PARALLAX, each bound to the rows by a field
+  interpolated from them rather than typed.
+
 - **2026-08-31** — BASELINE ledger v1 built: renders Lane 1 both cells
   (live GREEN over 440,661 as-of rows; twin RED matching the planted error
   exactly) and one surface audit (48-page vendor corpus, controls held),
