@@ -6,6 +6,7 @@ and in `docs/learnings/`, never here.
 
 | brief | describes commit | one-line |
 |---|---|---|
+| [2026-09-06-datum-ruling-supersession-first](2026-09-06-datum-ruling-supersession-first.md) | `775978f` (baseline) · `91be859` (datum) | pick-up green, nothing changed in-repo; DATUM ruling makes the single-surface guard an invariant; `superseded_by` first, then DATUM adoption (`gate_sha` re-emit) with the operator; figure lock has lost its referent. |
 | [2026-09-01-reviewer-portal-on-vercel](2026-09-01-reviewer-portal-on-vercel.md) | `45a9a46` (baseline) · `9c59d5e` (site) | portal restyle in the site design system, evidence-backed baseline cards, self-contained public hero; open item is the fate of the site's /baseline page. |
 | [2026-09-01-canonical-host-moved-to-vercel](2026-09-01-canonical-host-moved-to-vercel.md) | `8746530` (baseline) | canonical host moved to Vercel behind a gated build; GitHub Pages retired; supersession gap confirmed live rather than predicted. |
 | [2026-09-01-baseline-ledger-v1-published](2026-09-01-baseline-ledger-v1-published.md) | `b465661` (baseline) · `25e12b8` (parallax) | v1 ledger built, gated, published on GitHub Pages; twin-scope fix landed and rows re-emitted clean; open item is connecting the Vercel git link before the canonical URL moves. |
