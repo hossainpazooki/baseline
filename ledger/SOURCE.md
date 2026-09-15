@@ -24,6 +24,7 @@ platform, so raw-byte pins false-positive on checkout (caught in CI
 b41c436b8ed7d3c439874a2611bc0f2bb902402b243e57882decb7195379d6b2  verdicts/vantage-gold-local-parquet-lane1-twin-20260901T174849.431640Z.json
 ce10bac1d0793625d1c0948a867c10b189c4cfa556ed6ee0fc08ebc1b85815fb  audits/commercial-fundamentals-api-2026-08-20.json
 f02d465124885cffa5e40b5e1a69c8a72aedc4e4e31848ab3e2e99c184cc60ff  snapshots/audit-2026-08-20.json
+e3e3a3b22955c157dd3cb0efcb81dbb608505c68b48d61ea5523b5671d75cb38  supersession.json
 
 ## Replay
 

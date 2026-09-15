@@ -3,13 +3,21 @@
 // Every number in a row-backed sentence is interpolated from the row, never
 // typed. Prose that is NOT row-backed carries a visible "reported, not on the
 // ledger" badge. Usage: node scripts/build.mjs [--check]
+// Any other argument is a usage error: exit 2, before anything is gated or
+// written.
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 
-import { loadLedger, groupCells, deriveStatus } from "./lib/ledger.mjs";
+import { loadLedger, groupCells, deriveCredit, twinMatchesPlant } from "./lib/ledger.mjs";
 import { checkLedger } from "./check-ledger.mjs";
+
+const ARGS = process.argv.slice(2);
+if (ARGS.length > 1 || ARGS.some((a) => a !== "--check")) {
+  console.error("usage: build.mjs [--check]");
+  process.exit(2);
+}
 
 const ROOT = process.cwd();
 const LEDGER = join(ROOT, "ledger");
@@ -38,6 +46,14 @@ const esc = (s) => String(s).replace(/[&<>"']/g,
   (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const n = (x) => Number(x).toLocaleString("en-US");
 const day = (iso) => iso.slice(0, 10);
+// A shared row (ledger/runs/<generation>/) carries gate_sha/gate_worktree; a
+// legacy row carries parallax_sha/parallax_worktree. Every render site reads
+// through these so one page can show either shape without changing legacy
+// output, and labels the field by the name the row actually carries.
+const gateSha = (row) => row.gate_sha ?? row.parallax_sha;
+const gateWorktree = (row) => row.gate_worktree ?? row.parallax_worktree;
+const gateShaLabel = (row) => ("gate_sha" in row ? "gate_sha" : "parallax_sha");
+const codeList = (keys) => keys.map((k) => `<code>${esc(k)}</code>`).join(", ");
 
 // --- gate the ledger first; a page must never outrun its rows -------------
 const gateErrors = checkLedger(LEDGER);
@@ -45,8 +61,8 @@ if (gateErrors.length) {
   for (const e of gateErrors) console.error(`FAIL ${e}`);
   process.exit(1);
 }
-const { verdicts, audits } = loadLedger(LEDGER);
-const groups = groupCells(verdicts);
+const { verdicts, audits, superseded } = loadLedger(LEDGER);
+const groups = groupCells(verdicts, superseded);
 
 // The MVP renders one gate surface; refuse silently widened scope.
 if (groups.size !== 1 || audits.length !== 1) {
@@ -56,21 +72,37 @@ if (groups.size !== 1 || audits.length !== 1) {
 }
 const [surfaceKey, cells] = [...groups.entries()][0];
 const surface = surfaceKey.split(":")[0];
-const { live, twin } = cells;
+const { live, twins } = cells;
+// The page renders every twin of the cell. With exactly one twin every
+// string below is the one the page has always rendered (build.mjs --check
+// pins that against the committed page); several twins widen the same
+// figure, tables and sentences to one entry per twin.
+const twin = twins[0];
+const oneTwin = twins.length === 1;
 const audit = audits[0].row;
 
-const statusByLane = Object.fromEntries(
+const creditByLane = Object.fromEntries(
   Object.keys(LANES).map((lane) =>
-    [lane, deriveStatus(groups.get(`${surface}:lane${lane}`) ?? {})]),
+    [lane, deriveCredit(groups.get(`${surface}:lane${lane}`) ?? {})]),
 );
+const statusByLane = Object.fromEntries(
+  Object.entries(creditByLane).map(([lane, c]) => [lane, c.status]));
+// Checks no twin has set nonzero (credited check by check in a shared-row
+// generation only; the frozen legacy derivation never names any).
+const liveUnfalsified = live ? creditByLane[live.lane].unfalsified : [];
+const unfalsifiedNote = liveUnfalsified.length
+  ? ` No twin has yet set ${codeList(liveUnfalsified)} nonzero, so the lane is not credited on ` +
+    `${liveUnfalsified.length === 1 ? "that check" : "those checks"}.`
+  : "";
 
 // --- sentence forms (design §4, generated) --------------------------------
 const SITE = "https://hossainpazooki.github.io";
 const vio = (r) => Object.values(r.checks).reduce((a, b) => a + b, 0);
 
 // Check semantics: what each named check asserts, verifiable against the gate
-// source at the parallax_sha every row carries. A check the page cannot
-// describe renders a dash, never a guess.
+// source at the gate commit every row carries (parallax_sha on a legacy row,
+// gate_sha on a shared row). A check the page cannot describe renders a
+// dash, never a guess.
 const CHECK_DOCS = {
   no_future_accepted:
     "no row visible at the viewpoint d carries acceptance evidence stamped after d — the direct lookahead check",
@@ -84,19 +116,28 @@ const CHECK_DOCS = {
 const fmtChecks = (o) =>
   "{" + Object.keys(live ? live.checks : o).map((k) => o[k]).join(", ") + "}";
 
-// One value or two: renders a single spanning cell only when the cells agree,
-// so a divergence between live and twin can never be hidden by layout.
-const pairTd = (a, b, cls = "") => a === b
-  ? `<td class="${cls}" colspan="2">${a}</td>`
-  : `<td class="${cls}">${a}</td><td class="${cls}">${b}</td>`;
+// One value per cell (live, then each twin): renders a single spanning cell
+// only when every cell agrees, so a divergence between live and any twin can
+// never be hidden by layout.
+const spanTd = (vals, cls = "") => vals.every((v) => v === vals[0])
+  ? `<td class="${cls}" colspan="${vals.length}">${vals[0]}</td>`
+  : vals.map((v) => `<td class="${cls}">${v}</td>`).join("");
+const cellsTd = (f, cls = "") => spanTd([live, ...twins].map(f), cls);
 
 const liveSentence = live
   ? `On ${day(live.ran_at)}, the gate read ${n(live.rows)} as-of rows of ` +
     `<code>${esc(surface)}</code> — scope <code>${esc(live.scope)}</code>, ` +
     `viewpoint d&nbsp;=&nbsp;${day(live.params.d)} — and found ${live.result} ` +
     `on all ${Object.keys(live.checks).length} checks.` +
-    (twin ? ` The same run against a copy with one planted error went ${twin.result}.` : "")
+    (oneTwin ? ` The same run against a copy with one planted error went ${twin.result}.`
+      : twin ? ` The same run against ${twins.length} copies, each with a different planted error, went ` +
+        `${twins.map((t) => t.result).join(", ")}.`
+      : "")
   : "";
+
+const diagramAria = oneTwin || !twin
+  ? "The claim path. A gold baseline carries two observation points over one surface: the live cell reading the real surface, and the twin cell reading a copy with one planted error. Both are read by the same gate. The lane is creditable only if the live cell is green and the twin's red matches the plant exactly."
+  : `The claim path. A gold baseline carries observation points over one surface: the live cell reading the real surface, and ${twins.length} twin cells, each reading a copy with a different planted error. All are read by the same gate. The lane is creditable only if the live cell is green, every twin's red matches its own plant exactly, and every check has been set nonzero by some twin.`;
 const auditSentence =
   `As of ${day(audit.fetched_at)}, this vendor&#39;s fundamentals endpoints offered no way ` +
   `to ask what was known on a given day. Field that dates a period: ` +
@@ -110,7 +151,7 @@ const auditSentence =
 const diagram = (live && twin) ? `
   <figure class="optic reveal">
     <svg viewBox="0 0 900 330" role="img" width="100%"
-         aria-label="The claim path. A gold baseline carries two observation points over one surface: the live cell reading the real surface, and the twin cell reading a copy with one planted error. Both are read by the same gate. The lane is creditable only if the live cell is green and the twin's red matches the plant exactly.">
+         aria-label="${diagramAria}">
       <line class="ln-base" x1="150" y1="250" x2="750" y2="250"/>
       <line class="ln-tick" x1="150" y1="243" x2="150" y2="257"/>
       <line class="ln-tick" x1="750" y1="243" x2="750" y2="257"/>
@@ -124,9 +165,9 @@ const diagram = (live && twin) ? `
       <text class="t-name" x="150" y="228" text-anchor="middle">live cell</text>
       <text class="t-sub"  x="150" y="300" text-anchor="middle">${esc(live.scope)}</text>
       <text class="t-sub"  x="150" y="316" text-anchor="middle">${n(live.rows)} as-of rows</text>
-      <text class="t-name bl" x="750" y="228" text-anchor="middle">twin cell</text>
-      <text class="t-sub"  x="750" y="300" text-anchor="middle">a copy, one planted error</text>
-      <text class="t-sub"  x="750" y="316" text-anchor="middle">${esc(twin.planted.mutation)}</text>
+      <text class="t-name bl" x="750" y="228" text-anchor="middle">${oneTwin ? "twin cell" : `${twins.length} twin cells`}</text>
+      <text class="t-sub"  x="750" y="300" text-anchor="middle">${oneTwin ? "a copy, one planted error" : `${twins.length} copies, one planted error each`}</text>
+      <text class="t-sub"  x="750" y="316" text-anchor="middle">${esc(twins.map((t) => t.planted.mutation).join(" · "))}</text>
 
       <rect class="plate" x="342" y="72" width="216" height="58" rx="8"/>
       <text class="t-name au" x="450" y="96" text-anchor="middle">PARALLAX gate</text>
@@ -134,7 +175,7 @@ const diagram = (live && twin) ? `
       <text class="t-sub" x="450" y="150" text-anchor="middle">viewpoint d = ${day(live.params.d)}</text>
 
       <text class="t-mark ok"  x="286" y="176" text-anchor="middle">${esc(live.result)} · ${vio(live)} violations</text>
-      <text class="t-mark bad" x="614" y="176" text-anchor="middle">${esc(twin.result)} · ${vio(twin)} violations</text>
+      <text class="t-mark bad" x="614" y="176" text-anchor="middle">${esc([...new Set(twins.map((t) => t.result))].join("/"))} · ${twins.map(vio).join(" + ")} violations</text>
     </svg>
     <figcaption>A shift is a measurement only across a known baseline; a green gate
     is a claim only against a twin that went red for the planted reason and nothing
@@ -144,23 +185,31 @@ const diagram = (live && twin) ? `
 // --- the checks, the plant, and the run anatomy ---------------------------
 const checksTable = (live && twin) ? `
   <div class="panel reveal"><table>
-    <caption>the checks · semantics from the gate source at ${esc(live.parallax_sha.slice(0, 12))}</caption>
+    <caption>the checks · semantics from the gate source at ${esc(gateSha(live).slice(0, 12))}</caption>
     <thead><tr><th>Check</th><th>What it asserts</th><th>Evaluated</th>
-      <th>Live violations</th><th>Twin violations (expected)</th></tr></thead>
+      <th>Live violations</th>${twins.map((t) =>
+        `<th>Twin violations (expected)${oneTwin ? "" : ` · ${esc(t.planted.mutation)}`}</th>`).join("")}</tr></thead>
     <tbody>${Object.keys(live.checks).map((k) => `
       <tr>
         <td class="k">${esc(k)}</td>
         <td>${CHECK_DOCS[k] ? esc(CHECK_DOCS[k]) : '<span class="muted">&mdash;</span>'}</td>
         <td class="num">${n(live.evaluated[k])}</td>
         <td class="k"><span class="${live.checks[k] === 0 ? "okv" : "badv"}">${live.checks[k]}</span></td>
-        <td class="k"><span class="${twin.checks[k] === twin.planted.expected_violations[k] ? "okv" : "badv"}">${twin.checks[k]} = ${twin.planted.expected_violations[k]} expected</span></td>
+        ${twins.map((t) => `<td class="k"><span class="${t.checks[k] === t.planted.expected_violations[k] ? "okv" : "badv"}">${t.checks[k]} = ${t.planted.expected_violations[k]} expected</span></td>`).join("\n        ")}
       </tr>`).join("")}
     </tbody>
   </table></div>` : "";
 
-const plantMatch = twin
-  && JSON.stringify(twin.checks) === JSON.stringify(twin.planted.expected_violations);
-const plantSentence = twin ? `The plant: <code>${esc(twin.planted.mutation)}</code> mutated ` +
+// The library's comparison (over the union of check names), not a
+// serialization compare that a different key order would fail.
+const plantMatch = twin && twinMatchesPlant(twin);
+const plantsSentence = twins.length > 1 ? `The plants, one per twin: ` + twins.map((t) =>
+  `<code>${esc(t.planted.mutation)}</code> mutated ${n(t.planted.mutated_rows)} ` +
+  `row${t.planted.mutated_rows === 1 ? "" : "s"} out of ${n(t.rows)}, expected ` +
+  `<code>${fmtChecks(t.planted.expected_violations)}</code>, the gate returned <code>${fmtChecks(t.checks)}</code>` +
+  (twinMatchesPlant(t) ? "" : ` <span class="badv">(NOT an exact match — this page should not have built)</span>`)).join("; ") +
+  `. Each red credits only an exact match to its own plant; a red for any other reason credits nothing.` : "";
+const plantSentence = twin && !oneTwin ? plantsSentence : twin ? `The plant: <code>${esc(twin.planted.mutation)}</code> mutated ` +
   `${n(twin.planted.mutated_rows)} row out of ${n(twin.rows)}. Expected violations ` +
   `<code>${fmtChecks(twin.planted.expected_violations)}</code>; the gate returned ` +
   `<code>${fmtChecks(twin.checks)}</code> — ` +
@@ -170,19 +219,19 @@ const plantSentence = twin ? `The plant: <code>${esc(twin.planted.mutation)}</co
 
 const anatomy = (live && twin) ? `
   <div class="panel reveal"><table>
-    <caption>the run, field by field · every value read from the two rows</caption>
-    <thead><tr><th>Field</th><th>live cell</th><th>twin cell</th></tr></thead>
+    <caption>the run, field by field · every value read from the ${oneTwin ? "two" : n(twins.length + 1)} rows</caption>
+    <thead><tr><th>Field</th><th>live cell</th>${oneTwin ? "<th>twin cell</th>"
+      : twins.map((t) => `<th>twin · ${esc(t.planted.mutation)}</th>`).join("")}</tr></thead>
     <tbody>
-      <tr><td class="k">scope</td>${pairTd(esc(live.scope), esc(twin.scope))}</tr>
-      <tr><td class="k">viewpoint d</td>${pairTd(esc(live.params.d), esc(twin.params.d), "k")}</tr>
-      <tr><td class="k">earlier viewpoint d_earlier</td>${pairTd(esc(live.params.d_earlier), esc(twin.params.d_earlier), "k")}</tr>
-      <tr><td class="k">ran_at</td>${pairTd(esc(live.ran_at), esc(twin.ran_at), "k")}</tr>
-      <tr><td class="k">gate commit</td>${pairTd(
-        esc(live.parallax_sha) + " · worktree " + esc(live.parallax_worktree),
-        esc(twin.parallax_sha) + " · worktree " + esc(twin.parallax_worktree), "k")}</tr>
-      <tr><td class="k">runner</td>${pairTd(esc(live.runner), esc(twin.runner), "k")}</tr>
-      <tr><td class="k">content_hash</td>${pairTd(esc(live.content_hash), esc(twin.content_hash), "k hash")}</tr>
-      <tr><td class="k">hash basis</td>${pairTd(esc(live.content_hash_basis), esc(twin.content_hash_basis))}</tr>
+      <tr><td class="k">scope</td>${cellsTd((r) => esc(r.scope))}</tr>
+      <tr><td class="k">viewpoint d</td>${cellsTd((r) => esc(r.params.d), "k")}</tr>
+      <tr><td class="k">earlier viewpoint d_earlier</td>${cellsTd((r) => esc(r.params.d_earlier), "k")}</tr>
+      <tr><td class="k">ran_at</td>${cellsTd((r) => esc(r.ran_at), "k")}</tr>
+      <tr><td class="k">gate commit</td>${cellsTd(
+        (r) => esc(gateSha(r)) + " · worktree " + esc(gateWorktree(r)), "k")}</tr>
+      <tr><td class="k">runner</td>${cellsTd((r) => esc(r.runner), "k")}</tr>
+      <tr><td class="k">content_hash</td>${cellsTd((r) => esc(r.content_hash), "k hash")}</tr>
+      <tr><td class="k">hash basis</td>${cellsTd((r) => esc(r.content_hash_basis))}</tr>
     </tbody>
   </table></div>` : "";
 
@@ -285,11 +334,16 @@ const failCards = `
         manufactures shift &mdash; <b>false parallax</b>, indistinguishable from signal on
         a single pair of plates.</p></div>
       <div class="fl-half"><span class="fl-cap sys">on this ledger</span>
-        <p>The twin exists to catch exactly this: <code>${esc(twin.planted.mutation)}</code>
+        <p>${oneTwin ? `The twin exists to catch exactly this: <code>${esc(twin.planted.mutation)}</code>
         moved the boundary by ${n(twin.planted.mutated_rows)} row and the gate went
         <span class="pill red">${esc(twin.result)}</span> with violations
         <code>${fmtChecks(twin.checks)}</code> &mdash; the plant, the whole plant, and
-        nothing but the plant.</p></div>
+        nothing but the plant.` : `The twins exist to catch exactly this: ${twins.map((t) =>
+        `<code>${esc(t.planted.mutation)}</code> moved the boundary by ${n(t.planted.mutated_rows)} ` +
+        `row${t.planted.mutated_rows === 1 ? "" : "s"} and the gate went ` +
+        `<span class="pill ${esc(t.result.toLowerCase())}">${esc(t.result)}</span> with violations ` +
+        `<code>${fmtChecks(t.checks)}</code>`).join("; ")} &mdash; each plant, the whole plant, and
+        nothing but the plant.`}</p></div>
     </article>
     <article class="fail reveal">
       <div class="fl-head"><span class="fl-num ok">03</span><span class="fl-name">stored viewpoint</span></div>
@@ -301,13 +355,16 @@ const failCards = `
         <p>Lane ${live.lane} derives
         <span class="pill ${statusByLane[live.lane].toLowerCase()}">${esc(statusByLane[live.lane])}</span>
         today: live <span class="pill green">${esc(live.result)}</span> over
-        ${n(live.rows)} as-of rows at d&nbsp;=&nbsp;${day(live.params.d)}, twin red for
-        the planted reason. One surface, one lane, one dated run &mdash; <b>and no more
+        ${n(live.rows)} as-of rows at d&nbsp;=&nbsp;${day(live.params.d)}, ${oneTwin ? `twin red for
+        the planted reason.` : `${n(twins.length)} twins red, each for
+        its own planted reason.`}${unfalsifiedNote} One surface, one lane, one dated run &mdash; <b>and no more
         than that</b>.</p></div>
     </article>
   </div>`;
 
-const verdictRowsHtml = verdicts.map(({ row, rel }) => `
+// Superseded rows stay at their published URLs and render as history only,
+// below; the main table renders exactly the current generation.
+const verdictRowsHtml = verdicts.filter(({ rel }) => !superseded.has(rel)).map(({ row, rel }) => `
       <tr>
         <td><span class="pill ${row.result.toLowerCase()}">${row.result}</span></td>
         <td class="k">${esc(row.surface)}</td>
@@ -318,11 +375,33 @@ const verdictRowsHtml = verdicts.map(({ row, rel }) => `
         <td class="k">${Object.entries(row.checks).map(([k, v]) =>
           `${esc(k)}:${v}`).join("  ")}</td>
         <td>${esc(day(row.ran_at))}</td>
-        <td class="k">${esc(row.parallax_sha.slice(0, 12))}${
-          row.parallax_worktree === "dirty" ? " <span class='warn'>(dirty)</span>" : ""}</td>
+        <td class="k">${esc(gateSha(row).slice(0, 12))}${
+          gateWorktree(row) === "dirty" ? " <span class='warn'>(dirty)</span>" : ""}</td>
         <td class="k" title="${esc(row.content_hash_basis)}">${esc(row.content_hash.slice(7, 19))}…</td>
         <td><a href="ledger/${esc(rel)}">row</a> <span class="unsigned">unsigned</span></td>
       </tr>`).join("");
+
+// With nothing superseded this is the empty string and the page is
+// unchanged (build.mjs --check pins that against the committed page).
+const historyRows = verdicts.filter(({ rel }) => superseded.has(rel));
+const historyHtml = historyRows.length === 0 ? "" : `
+  <p>Superseded verdicts &mdash; kept at their published URLs, credited nothing:</p>
+  <div class="panel reveal"><table>
+    <caption>GATE_VERDICT &middot; superseded, history only</caption>
+    <thead><tr><th>Result</th><th>Cell</th><th>Ran</th><th>Gate commit</th>
+      <th>Content hash</th><th>Superseded by</th><th>Provenance</th></tr></thead>
+    <tbody>${historyRows.map(({ row, rel }) => `
+      <tr>
+        <td><span class="pill ${row.result.toLowerCase()}">${row.result}</span></td>
+        <td>${esc(row.cell)}</td>
+        <td>${esc(day(row.ran_at))}</td>
+        <td class="k">${esc(gateSha(row).slice(0, 12))}</td>
+        <td class="k">${esc(row.content_hash.slice(7, 19))}&hellip;</td>
+        <td class="k"><a href="ledger/${esc(superseded.get(rel))}">successor</a></td>
+        <td><a href="ledger/${esc(rel)}">row</a> <span class="unsigned">unsigned</span></td>
+      </tr>`).join("")}
+    </tbody>
+  </table></div>`;
 
 const auditRowHtml = audits.map(({ row, rel }) => `
       <tr>
@@ -335,11 +414,16 @@ const auditRowHtml = audits.map(({ row, rel }) => `
         <td><a href="ledger/${esc(rel)}">row</a> <span class="unsigned">unsigned</span></td>
       </tr>`).join("");
 
-const statusBoard = Object.entries(statusByLane).map(([lane, st]) => `
+const sharedLane = (lane) => groups.get(`${surface}:lane${lane}`)?.dialect === "shared";
+const statusBoard = Object.entries(creditByLane).map(([lane, { status: st, unfalsified }]) => `
       <tr>
         <td class="k">${lane} · ${esc(LANES[lane])}</td>
         <td><span class="pill ${st.toLowerCase()}">${st}</span></td>
-        <td class="muted">${{
+        <td class="muted">${unfalsified.length
+          ? `live cell GREEN and every twin cell RED as planted, but no twin has set these checks nonzero: ${codeList(unfalsified)}`
+          : st === "CLAIMABLE" && sharedLane(lane)
+          ? "live cell GREEN and every twin cell RED matching its planted error exactly, every check set nonzero by some twin"
+          : {
           CLAIMABLE: "live cell GREEN and twin cell RED, red matching the planted error exactly",
           PARTIAL: "one of the two cells present — not green",
           UNCLAIMED: "no gate runs on this lane yet",
@@ -683,7 +767,7 @@ const html = `<!doctype html>
       <tr>
         <td class="k"><a href="https://github.com/${esc(REPOS.parallax.repo)}">${esc(REPOS.parallax.name)}</a></td>
         <td>${esc(REPOS.parallax.role)}</td>
-        <td class="k">parallax_sha = ${esc(live ? live.parallax_sha.slice(0, 12) : "n/a")}</td>
+        <td class="k">${live ? gateShaLabel(live) : "parallax_sha"} = ${esc(live ? gateSha(live).slice(0, 12) : "n/a")}</td>
       </tr>
       <tr>
         <td class="k">BASELINE</td>
@@ -729,7 +813,9 @@ ${failCards}
   <h2 id="status">Status by lane</h2>
   <p>Surface under test: <code>${esc(surface)}</code>. A lane is CLAIMABLE only when both
   cells exist: the live surface green <em>and</em> the planted-error twin red for exactly
-  the planted reason. Status is recomputed from the rows at every build; it is never
+  the planted reason.${cells.dialect === "shared"
+    ? " Each check is credited on its own: every check the live cell reports must have been set nonzero by at least one twin red for its planted reason, or the lane derives PARTIAL and names the check."
+    : ""} Status is recomputed from the rows at every build; it is never
   written down.</p>
   <div class="panel reveal"><table>
     <caption>derived at build time, never authored</caption>
@@ -747,7 +833,7 @@ ${failCards}
       <th>Gate commit</th><th>Content hash</th><th>Provenance</th></tr></thead>
     <tbody>${verdictRowsHtml}
     </tbody>
-  </table></div>
+  </table></div>${historyHtml}
   <p>Surface audits &mdash; established by reading vendor documentation, visibly not gate
   runs, coloured accordingly:</p>
   <div class="panel reveal"><table>
@@ -814,7 +900,7 @@ ${failCards}
 </html>
 `;
 
-if (process.argv.includes("--check")) {
+if (ARGS.includes("--check")) {
   const committed = existsSync(OUT) ? readFileSync(OUT, "utf8") : null;
   if (committed !== html) {
     console.error("FAIL index.html is stale — rerun: node scripts/build.mjs");
