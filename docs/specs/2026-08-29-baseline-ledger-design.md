@@ -310,3 +310,239 @@ conflict, the amendment is what is built and enforced.
     the audit row's sentence, verbatim notes, method controls, and corpus
     now live in a second disclosure attached to the SURFACE_AUDIT table).
     The 1.51% badged measurement kept its own section, after the cards.
+
+---
+
+# Amendments — 2026-09-14 (re-emitting without rewriting: supersession, generations, multi-twin cells, check-by-check crediting)
+
+Everything below is built and enforced by `scripts/lib/ledger.mjs`,
+`scripts/check-ledger.mjs` and `scripts/build.mjs`, each rule held by a
+named control in `scripts/test-ledger.mjs`. The committed page did not move:
+`build.mjs --check` passes against the unchanged `index.html`. Nothing here
+re-emits a row; the two committed lane-1 rows are still the only verdicts.
+
+**A1. Input holes.** The original loader selected rows with
+`f.endsWith(".json")` (case-sensitive) and never checked that a directory
+entry was a regular file, so an uppercase-extension file (`BAD.JSON`) could
+be hash-bound in `SOURCE.md` yet never loaded as a row, and a subdirectory
+inside `verdicts/` was silently skipped. Every regular file in a rows
+directory is now a row regardless of extension case, and any non-regular
+entry refuses the ledger; `ledger/runs/` may hold only generation
+directories, so a file placed directly in it is refused. The gate also lists
+the whole ledger root: every file under `ledger/` except `SOURCE.md` must be
+bound, and the root may hold only `verdicts/`, `audits/`, `snapshots/`,
+`runs/`, `SOURCE.md` and `supersession.json`. Before this, a row in
+`ledger/verdicts-old/`, a loose `ledger/*.json`, or a case variant such as
+`ledger/Verdicts/` on a case-sensitive runner passed the gate and would still
+have been served. Controls: "subdirectory in verdicts/", "bound upper-case
+BAD.JSON live-RED row", "bound row in a folder outside the rows
+directories", "unbound loose file at the ledger root". `snapshots/` is not a
+rows directory: every file in it must be named as the `audit_artifact` of an
+audit row, a file there that is itself a verdict row is refused by name, and
+an audit's `audit_artifact` must name a file under `snapshots/`. Before this,
+a bound live RED verdict row placed in `ledger/snapshots/` passed the gate
+and the page still rendered CLAIMABLE. `audits/` already refused any row
+whose kind is not `SURFACE_AUDIT`. Controls: "verdict row hidden in
+snapshots/", "snapshot that no audit row names", "verdict row in audits/",
+"audit artifact outside snapshots/".
+
+**A2. Supersession.** A superseded row is never edited or deleted — a
+hand-copied row must stay byte-identical to what the gate emitted or its own
+binding breaks — so a replacement is a pointer:
+`ledger/supersession.json` is exactly
+`{"superseded": {"<row path>": "<successor row path>"}}`, hash-bound like
+every other ledger file; absent and empty mean the same thing, and any other
+shape (`null`, an unknown key, a non-string target) is refused with a named
+reason. Each pointer joins two existing rows of the same surface, lane and
+cell; the successor's `ran_at` is strictly later and it sits in a later
+generation; a twin's successor carries the same `planted.mutation` (compared
+after trimming, and two mutations that differ only by case or whitespace are
+refused); the pointer graph has no cycle. The current generation is
+derived, never named: the one directory holding every non-superseded row,
+and no superseded row may sit in it. `build.mjs` renders superseded rows in
+a separate "superseded, history only" table at their published URLs, each
+with its own result and a link to its successor.
+`check-ledger.mjs --current-generation` prints the current generation, and
+exits 2 — never a guess — when the gate refuses the ledger or the rows span
+more than one directory.
+
+**A3. Generations and time.** `ledger/verdicts/` is generation zero; later
+generations are `ledger/runs/<YYYYMMDDTHHMMSS[.fraction]Z>/`. A generation
+directory name must parse as a UTC instant on a real calendar date, two
+names may not denote the same instant, a generation may not be empty, and
+every row of a generation must have run strictly after every row of each
+earlier generation, so directory order and `ran_at` order agree. A
+generation's stamp is also no later than the earliest `ran_at` of its own
+rows, and later than the latest row of the generation before it (the legacy
+directory included), so a stamp cannot sit outside the run it names; before
+this, `runs/19990101T000000Z` holding rows that ran in 2026 was accepted as
+the current generation. `ran_at` is
+parsed as a strict ISO-8601 UTC instant (`YYYY-MM-DDTHH:MM:SS[.fraction]Z`,
+real calendar date) and instants are compared as parsed values; the earlier
+string comparison ranked `…48.9Z` after `…48.951466Z` and let an older
+successor, a `+05:00` offset and the string `9` through. **The known cost:**
+a new generation must re-emit every cell of every lane that is still live,
+not only the one being changed; a ledger whose non-superseded rows span two
+directories is refused, so "the current generation" is always one place a
+reader can point at.
+
+**A4. Two row dialects, one per generation.** Rows in `ledger/verdicts/`
+keep the dialect they were published in (`parallax_sha`,
+`parallax_worktree`), frozen. Rows in a generation directory are the shared
+GATE_VERDICT row, schema version 1, which a conformance pack checks across
+the repositories that adopt it (DATUM, a private governing text, defines
+both): its properties are a closed set, so an unknown top-level key is
+refused and so is a leftover `parallax_*` key; it carries `schema` (its
+exact version-1 identifier), a 40-hex `gate_sha`, `gate_worktree` of `clean`
+or `dirty`, and `unevaluable_reason` exactly when `result` is `UNEVALUABLE`.
+A shared row also obeys the cross-field rules the pack applies to it:
+`checks` has at least one check; every count in `checks`, `evaluated` and
+`planted.expected_violations` is a non-negative integer; `evaluated` has
+exactly the keys of `checks`; a GREEN live has no violations and a RED twin
+has some; `planted` holds exactly `mutation`, `mutated_rows` and
+`expected_violations`, and the plant expects at least one violation.
+Without these, a live GREEN and a twin RED that both reported no checks at
+all derived CLAIMABLE (with no check keys, nothing is left unfalsified), and
+a live GREEN with violations was credited. In every row, a status literal is
+refused as a whole word in any string or object key. This ledger
+additionally keeps requiring `rows`, bound to
+`evaluated.no_future_accepted`, and the binding can no longer be skipped: a
+`checks` or `evaluated` that is null or not an object is refused by name,
+where before it passed the gate and crashed the page build. A ledger file
+with a duplicate JSON key at any depth is refused, as malformed JSON is
+(exit 1): `JSON.parse` keeps the last of two equal keys without a word, so a
+row could carry `"result": "RED"` and then `"result": "GREEN"` and read as
+GREEN. `build.mjs` labels the gate commit by the field the row actually
+carries (`parallax_sha` or `gate_sha`), and compares a plant with its checks
+through the library rather than by serialized key order. The single-surface
+guard in `build.mjs` and the `rows` binding hold for both dialects.
+
+**A5. Several twins per cell, in shared-row generations.** A cell in a
+generation directory may hold several twins with distinct
+`planted.mutation` values (required there, matching `[a-z0-9_]+`); a second
+twin with the same mutation is refused, mutations are compared after
+trimming, and two that differ only by case or whitespace are refused rather
+than counted as two twins. File names carry the cell and, for a twin, the
+mutation: `<surface>-lane<n>-live-<stamp>.json` and
+`<surface>-lane<n>-twin-<mutation>-<stamp>.json`, the mutation segment equal
+to `planted.mutation`; the legacy file-name rule is unchanged. The page
+renders every twin: the figure, the checks table and the run-anatomy table
+gain one column per twin (anatomy cells still collapse only when every value
+agrees), the plant sentences, the card that shows the plant and the verdict
+table list each twin, and the stored-viewpoint card counts them. A control
+asserts each of those places; forcing the single-twin rendering used to
+leave the suite green. With exactly one twin every rendered string is the
+one the page has always rendered. The frozen legacy
+generation keeps its one-twin-per-cell rule; this lifts, for new
+generations only, the one-twin rule recorded as a locked decision on
+2026-09-06.
+
+**A6. Status credited check by check, in shared-row generations — and why
+the legacy derivation stays frozen.** A GREEN live with at least one twin,
+every twin RED as planted, is CLAIMABLE only if every check key the live row
+reports has been set nonzero by at least one of those twins; otherwise the
+lane derives PARTIAL and the page names the unfalsified checks on the status
+board and in the stored-viewpoint card. A group with any UNEVALUABLE row
+derives UNEVALUABLE, and check-by-check crediting does not apply to it; a
+lone live, or twins without a live, derive PARTIAL. This is the status the
+conformance pack derives, so this ledger's own derivation can be compared
+with the pack's once the pack is vendored.
+
+Measured before choosing, read-only, against the committed lane-1 rows
+(`ledger/verdicts/vantage-gold-local-parquet-lane1-{live,twin}-*.json`):
+
+| live check key | live value | twin value | set nonzero by the twin? |
+|---|---|---|---|
+| `no_future_accepted` | 0 | 1 | yes |
+| `as_of_monotonicity` | 0 | 0 | **no** |
+| `restatement_visibility` | 0 | 1 | yes |
+
+The single plant (`plant_future_accepted`, one row) never moves
+`as_of_monotonicity` off zero, so applying check-by-check crediting to these
+rows would change the published lane-1 status from CLAIMABLE to PARTIAL.
+Changing what the committed page renders was not on the table, so the rule
+applies to the shared-row dialect only: `ledger/verdicts/` keeps its
+published derivation, frozen (CLAIMABLE when its one live is GREEN and its
+one twin is RED matching the plant, no check-by-check crediting). The
+consequence is scheduled, not avoided: once these rows are re-emitted into a
+generation directory with this one plant, lane 1 derives PARTIAL naming
+`as_of_monotonicity`, and it derives CLAIMABLE again only when some twin —
+for instance a second plant that breaks monotonicity — sets that check
+nonzero. A scratch build of the real rows converted into a generation showed
+both: PARTIAL naming `as_of_monotonicity` with the one twin, CLAIMABLE with a
+second twin that sets it nonzero.
+
+**A7. Every generation satisfies the structural cell rules on its own; a
+needs-a-human result refuses only in the current generation.** Superseded or
+not, a generation must hold valid rows, one live per cell and distinct twin
+mutations (one twin per cell in the legacy dialect), keep the `rows` binding,
+and have every file bound; a superseded generation that breaks one of these
+still refuses the ledger. A live RED (a real surface failed), a GREEN twin
+(the gate missed the plant) and a twin RED that does not match its plant (a
+red for the wrong reason) refuse the ledger only when the row sits in the
+current generation, and there they are checked before a cell can derive
+UNEVALUABLE, so an UNEVALUABLE row in the same cell never hides one. In a
+superseded generation such a row stays as history: the page shows its result
+and links its successor in the history table, it never appears in the main
+gate-output table beside the current rows, and the ledger is accepted. The
+legacy dialect follows the same split, so a lone live RED or a lone GREEN
+twin in the current legacy generation now refuses, where the published
+derivation rendered it PARTIAL; the committed rows are a GREEN live and a RED
+twin as planted, so the page does not change. Controls: "superseded shared
+generation with a live RED renders as history with its result and successor
+link", the same for a GREEN twin and for a twin RED for the wrong reason;
+"superseded rows render in the history table only, never in the main
+gate-output table"; "live RED in the current shared generation", "GREEN twin
+in the current shared generation", "twin RED for the wrong reason in the
+current shared generation", "lone live RED in the current legacy
+generation"; "superseded shared generation with a second live stays refused"
+and "superseded shared generation with a duplicate twin mutation stays
+refused"; for row validity on a superseded row, "superseded shared
+generation with a twin RED over zero checks stays refused", "... with a live
+GREEN carrying violations stays refused", "... with rows not equal to
+evaluated stays refused" and "... with an UNEVALUABLE row without a reason
+stays refused"; for bound files, "superseded row missing from SOURCE.md
+stays refused" and "superseded row whose bytes drift from its SOURCE.md hash
+stays refused".
+
+The repository's owner decided this reading. The rule, in the owner's words:
+
+> Rules per generation - Each generation must satisfy the cell rules on its
+> own. A superseded RED or GREEN twin may stay only as history, and the page
+> shows its result with a link to its successor. Tests pin this.
+
+On whether a superseded live RED is history too, the owner's clarification of
+2026-09-15, verbatim:
+
+> Live RED becomes history too - A later GREEN generation supersedes a RED
+> live. The RED stays on the page in the history table, with its result and a
+> link to its successor. Round 4 already built this.
+
+The behaviour that clarification calls already built is the behaviour this
+item records.
+
+**A8. Command lines.** `check-ledger.mjs [ledger-dir] [--current-generation]`
+and `build.mjs [--check]` refuse any unknown flag or extra positional
+argument with exit 2; `build.mjs` refuses before gating or writing anything.
+
+**A9. Adopting the pack — not built.** When the conformance pack is vendored
+into this repository it lives at `gates/conformance/`, pinned to a pack
+commit, and CI runs it next to `check-ledger.mjs`; the shared-row derivation
+above is the second derivation of status that CI then compares with the
+pack's, failing on disagreement. Re-emitting the lane-1 rows (an operator
+step that needs the gold surface), renaming the fields in the PARALLAX
+emitter, vendoring and that CI step are all still not built.
+
+**A10. Generation zero is frozen in code.** `ledger/verdicts/` must hold
+exactly the two committed lane-1 rows, each at its committed sha256
+(LF-normalized, the hash `SOURCE.md` records). The file set and the hashes
+are fixed in `scripts/lib/ledger.mjs`, so a legacy row cannot be added,
+changed or removed, rebound in `SOURCE.md`, and then judged under the
+legacy rules; new rows go into a generation directory. The test fixtures
+therefore carry byte copies of the committed rows. A control that has to
+reach a changed legacy generation still names its own reason beside the
+freeze's; where a rule can only be shown on a changed legacy generation (a
+superseded legacy live RED, lone RED live or lone GREEN twin), the control
+asserts that the freeze is the only refusal. Controls: "legacy row added to
+generation zero", "committed legacy row changed and rebound", "committed
+legacy row removed", "the committed ledger passes the gate".

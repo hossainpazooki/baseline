@@ -1,5 +1,52 @@
 # STATUS
 
+- **2026-09-14** — Ledger mechanics for re-emitting rows, built; the live
+  page did not move (`build.mjs --check` passes against the unchanged
+  `index.html`). A row can now be retired without being edited:
+  `ledger/supersession.json` (hash-bound, empty today) points a superseded
+  row at its successor in a new generation directory
+  `ledger/runs/<UTC stamp>/`, and the page renders superseded rows in a
+  history table at their published URLs, with their result and a successor
+  link. `ledger/runs/` may hold only generation directories: a file placed
+  directly in it refuses the ledger, as does any subdirectory inside a
+  generation, `verdicts/` or `audits/`. Every generation must satisfy the
+  structural cell rules on its own, superseded or not: valid rows, one live
+  per cell, distinct twin mutations, the `rows` binding, bound files;
+  controls on superseded rows pin the row rules, the `rows` binding and the
+  `SOURCE.md` binding there. A live RED, a GREEN twin or a twin RED for the
+  wrong reason refuses the ledger only in the current generation (checked
+  before a cell can derive UNEVALUABLE); in a superseded generation that row
+  stays as history, shown only in the history table, with its result and a
+  link to its successor. Rows in a generation
+  directory use the shared row schema (DATUM, a private governing text,
+  defines it) and the row rules the conformance pack applies: a closed
+  property set, an exact schema id, a 40-hex `gate_sha`, at least one check,
+  `evaluated` keys equal to `checks` keys, no violations on a GREEN live,
+  some on a RED twin, and a plant that expects at least one violation. A
+  cell there may hold several twins: each twin's file name carries its
+  mutation, two mutations that differ only by case or whitespace are
+  refused, and a twin's successor carries the same mutation. Lane status
+  there is credited check by check, so a check no twin has set nonzero
+  makes the lane PARTIAL and is named on the page. `ledger/verdicts/` is
+  frozen to its two committed rows (file set and hashes fixed in code, so
+  rebinding `SOURCE.md` cannot change it) and keeps its published
+  derivation. Measured on those rows: the twin never moves
+  `as_of_monotonicity` off 0, so check-by-check crediting would turn lane 1
+  PARTIAL; that is why the rule applies only to new generations and today's
+  page still renders CLAIMABLE. Also closed: a ledger file with a duplicate
+  JSON key is refused; `snapshots/` may hold only files an audit row names,
+  never a verdict row; a generation's stamp is no later than its first row
+  and later than every row of the generation before it; `ran_at` is parsed
+  as a strict ISO-8601 UTC instant and ordered as one; the whole ledger root
+  is listed, so any file under `ledger/` must be bound and no unknown folder
+  may sit there; both CLIs refuse unknown flags and extra arguments (exit
+  2); `--current-generation` exits 2 on a ledger the gate refuses. Rules,
+  the measurement and the known cost (a new generation re-emits every
+  still-live cell) are in the design spec's 2026-09-14 amendment.
+  `test-ledger.mjs`: 22 positive + 119 negative controls + 7 CLI checks,
+  all held. Not built: re-emitting the rows, vendoring the pack. Known
+  limits are listed at the end of this file.
+
 - **2026-09-01** — Canonical host moved to Vercel:
   <https://baseline-beryl.vercel.app/>, deployed from `main` on push behind a
   build command that runs the negative controls, the ledger gate and
@@ -24,3 +71,54 @@
   1.51% sign-flip measurement renders with a "reported, not on the ledger"
   badge. GitHub Pages enabled 2026-08-31, serving `main` root at
   https://hossainpazooki.github.io/baseline/.
+
+## Known limits
+
+Facts about this tree as it stands; none of them is fixed.
+
+- A current-generation live row whose `params` has no `d` passes
+  `check-ledger.mjs`, and `build.mjs` then stops with a `TypeError` and a
+  stack trace (exit 1) instead of a named refusal; a twin row without
+  `params.d` builds, and the run-anatomy table shows `undefined` for its
+  viewpoints.
+- A row file with a duplicate JSON key, a row file that is not JSON, and a
+  row file that starts with a byte-order mark are each refused with exit 1,
+  the gate's refusal class; the conformance pack reports the same three
+  files as unevaluable, exit 2.
+- For a shared-row lane holding a live row and no twin, the gate derives
+  PARTIAL and names no unfalsified check; the conformance pack derives the
+  same PARTIAL and names every check the live row reports.
+- In a superseded generation the gate accepts, as history, a twin RED that
+  does not match its plant; the conformance pack run over that generation's
+  directory refuses the same row (exit 1), so the two agree only while the
+  pack runs over the current generation alone.
+- Node 22 and a case-sensitive filesystem are exercised only by CI
+  (`.github/workflows/ci.yml`: Node 22 on `ubuntu-latest`); the local runs
+  used Node 24 on Windows.
+- `README.md` lines 41-43 state the crediting rule as one live GREEN plus
+  one twin RED for the planted reason, and the README does not mention
+  several twins per cell, check-by-check crediting or the frozen legacy
+  generation.
+- The 2026-09-06 records in `docs/handoff/` and `docs/learnings/` carry the
+  private governing text's name on 24 and 2 lines and in their file names,
+  and `docs/handoff/HANDOFF.md` and `docs/learnings/LEARNINGS.md` carry it
+  on one line each; they are dated records and keep the wording they were
+  written with.
+- No control pins three defence-in-depth checks, and removing any one of
+  them leaves the suite green: the stored-viewpoint card's sentence naming
+  unfalsified checks, the `cell`/`result`/`checks` shape test that
+  recognises an untyped verdict row in `snapshots/`, and the refusal of an
+  empty, `.` or `..` segment in an audit's `audit_artifact`.
+- No control places a file directly in `ledger/runs/`, and none depends on
+  the walk into an unknown folder at the ledger root: removing the rule that
+  `runs/` holds only generation directories leaves the suite green, and such
+  a file is still refused as a rows directory that is not a directory;
+  removing that walk leaves the suite green, and the folder is still refused
+  by name.
+- No control creates a symbolic link or junction under `ledger/`; the gate
+  refuses any entry that is neither a regular file nor a directory, and in
+  the suite only a subdirectory inside a rows directory reaches that
+  refusal.
+- A shared row's file-name stamp is not compared with its own `ran_at`: a
+  live row named `...-live-20260914T120000Z.json` whose `ran_at` is
+  `2026-09-14T12:00:05Z` passes the gate.
