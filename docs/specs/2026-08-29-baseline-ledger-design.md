@@ -47,6 +47,16 @@ Emitted by the PARALLAX gate at the end of a run.
 | `ran_at` | ISO-8601 UTC |
 | `runner` | `local` or `ci` |
 
+*Correction, 2026-09-15.* The `content_hash` row above says "SHA-256 over the
+data read". It is SHA-256 over a serialization of the gated frame's gold
+columns in canonical order, which is not the same thing: a copy of the same
+frame written to parquet and read back hashed `sha256:b27eaac16b3e...` where
+the live row records `sha256:3fcfb3c3c28a...`, because the serialization those
+two rows were emitted under depended on how the frame was built in memory and
+not only on its values. Rows emitted after the 2026-09-15 emitter change name a
+basis pinning one chunk and the oldest IPC compatibility level, under which the
+read-back does reproduce the hash. `ledger/SOURCE.md` carries the measurement.
+
 `RED` on a `twin` cell must carry the planted-mutation count; the expected
 value is exactly one violation per affected check.
 
@@ -225,6 +235,16 @@ conflict, the amendment is what is built and enforced.
    `scope`, `params`, `content_hash_basis` (canonical Arrow IPC of the gated
    frame — hash what the gate consumed, not raw directory bytes),
    `parallax_worktree` (`clean`/`dirty`), and for twins `planted`.
+   *Correction, 2026-09-15.* "hash what the gate consumed, not raw directory
+   bytes" claimed more than the basis these two rows carry delivers. The
+   frame the gate consumed, staged to parquet and read back, hashed
+   `sha256:b27eaac16b3e...` against the live row's `sha256:3fcfb3c3c28a...`,
+   and `sha256:bbe60bf9daf1...` against the twin row's
+   `sha256:01be4edf771b...`; the serialization depended on how the frame was
+   built in memory. The basis emitted from 2026-09-15 pins one chunk and the
+   oldest IPC compatibility level, under which a read-back of a staged copy
+   does reproduce the hash and the emitter writes no row when it does not.
+   Measurements are in `ledger/SOURCE.md`.
 8. **Windows-safe filenames.** `ran_at` is compacted (no colons) in
    filenames: `<surface>-lane<lane>-<cell>-<YYYYMMDDTHHMMSS[.ffffff]Z>.json`;
    the filename must agree with the row's surface/lane/cell.

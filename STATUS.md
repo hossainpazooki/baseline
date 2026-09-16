@@ -1,5 +1,31 @@
 # STATUS
 
+- **2026-09-15** -- What `content_hash` claims, restated. The page and
+  `ledger/SOURCE.md` said a reader holding a frame could use `content_hash`
+  to confirm it is byte-identical to the one the gate read. That was false and
+  is withdrawn. The hash identifies the values of the gold columns, in the row
+  order and under the serialization the row's own basis names; it is not a
+  hash of a file. Measured this day against the gold surface: the live frame
+  reproduces its published
+  `sha256:3fcfb3c3c28a0c28f3dc3e454b89767461f34fa6431238f58633c4bad8a31b65`,
+  but a copy of the same values written to parquet and read back the way the
+  gate reads it hashes
+  `sha256:b27eaac16b3e75d09d1f92a3d8482f3fb0e56724bce31257f8473aab44b33501`;
+  the twin reproduces `01be4edf771b...` and its read-back hashes
+  `bbe60bf9daf1...`. The two published rows are frozen, so the twin gap is
+  disclosed on the page and in `SOURCE.md` rather than edited into the row,
+  and the four-run corroboration paragraph keeps its evidence under a dated
+  scope note. Prose only: no row emitted, edited or removed, no `SOURCE.md`
+  sha256 line moved, the page regenerated because two sentences live in
+  `scripts/build.mjs`. Gates after the change:
+
+  ```
+  test-ledger: 22 positive + 119 negative controls + 7 CLI checks, all held
+  check-ledger: all rows bound, valid, and status-free
+  build --check: committed page matches the ledger
+  denaming-sweep: clean (2 terms, 0 hits)
+  ```
+
 - **2026-09-14** — Ledger mechanics for re-emitting rows, built; the live
   page did not move (`build.mjs --check` passes against the unchanged
   `index.html`). A row can now be retired without being edited:
@@ -76,6 +102,15 @@
 
 Facts about this tree as it stands; none of them is fixed.
 
+- Neither published lane-1 row's `content_hash` can be reproduced from a
+  parquet copy of its frame: under the basis those rows carry, the
+  serialization depends on
+  how the frame was assembled in memory, so a staged parquet read-back of the
+  same values hashes differently. Nothing in this repository detects that, and
+  nothing here can: the guard -- an emitter that hashes its own staged
+  read-back and writes no row on a mismatch -- is upstream, unverified from
+  here, and would in any case apply only to rows emitted under the new basis,
+  of which this ledger holds none.
 - A current-generation live row whose `params` has no `d` passes
   `check-ledger.mjs`, and `build.mjs` then stops with a `TypeError` and a
   stack trace (exit 1) instead of a named refusal; a twin row without

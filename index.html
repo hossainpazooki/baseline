@@ -346,8 +346,11 @@
   <p class="muted">Neither upstream repo is a dependency of this page: the rows are
   hand-copied across a hash-bound seam described in
   <a href="ledger/SOURCE.md">SOURCE.md</a>. Replaying a row needs the VANTAGE gold
-  surface, which is not published; the <code>content_hash</code> on each row is what a
-  reader without it can still check.</p>
+  surface, which is not published. The <code>content_hash</code> on each row identifies the
+  values of the gold columns, in canonical order and under the serialization the row's own
+  hash basis names &mdash; not the bytes of a file; for the two rows published here a copy of
+  the same frame, written out and read back, does not reproduce it, which
+  <a href="ledger/SOURCE.md">SOURCE.md</a> records and measures.</p>
 
   <h2 id="claim">The claim path <span class="pill green">row-backed</span></h2>
   <p>The gate reads a fundamentals surface the way a consumer would, re-derives what
@@ -435,7 +438,13 @@
       <tr><td class="k">content_hash</td><td class="k hash">sha256:3fcfb3c3c28a0c28f3dc3e454b89767461f34fa6431238f58633c4bad8a31b65</td><td class="k hash">sha256:01be4edf771b9a2fc84f86c93b6c79a858f1c3f6621ce5073609a062be43ff47</td></tr>
       <tr><td class="k">hash basis</td><td class="" colspan="2">sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)</td></tr>
     </tbody>
-  </table></div>
+  </table>
+    <p class="muted">On the twin cell's hash basis, "of the gated frame": the frame that gate
+    read is the staged twin parquet, which read back hashes
+    <code>sha256:bbe60bf9daf1</code>&hellip; under that same basis, while the row records the
+    hash of the same values before they were written. The row is frozen as published, so the
+    gap is recorded in <a href="ledger/SOURCE.md">SOURCE.md</a> rather than edited into the
+    row.</p></div>
   </details>
 
   <h2 id="failures">How baselines fail &mdash; and the one that holds</h2>

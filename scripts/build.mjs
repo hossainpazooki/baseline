@@ -217,6 +217,22 @@ const plantSentence = twin && !oneTwin ? plantsSentence : twin ? `The plant: <co
     ? `an exact match, which is the only thing that credits the green above. A red for any other reason credits nothing.`
     : `<span class="badv">NOT an exact match — this page should not have built.</span>`) : "";
 
+// The twin row of generation zero records the hash of the frame as it sat in
+// memory; the staged twin parquet the gate read hashes differently under the
+// same basis (measured 2026-09-15, recorded in ledger/SOURCE.md). The row is
+// frozen, so the page discloses the gap rather than the row being corrected.
+// Keyed on that row's own hash: a row emitted under the new basis says nothing
+// of the sort and gets no note.
+const DISCLOSED_TWIN_HASH =
+  "sha256:01be4edf771b9a2fc84f86c93b6c79a858f1c3f6621ce5073609a062be43ff47";
+const twinHashNote = twins.some((t) => t.content_hash === DISCLOSED_TWIN_HASH) ? `
+    <p class="muted">On the twin cell's hash basis, "of the gated frame": the frame that gate
+    read is the staged twin parquet, which read back hashes
+    <code>sha256:bbe60bf9daf1</code>&hellip; under that same basis, while the row records the
+    hash of the same values before they were written. The row is frozen as published, so the
+    gap is recorded in <a href="ledger/SOURCE.md">SOURCE.md</a> rather than edited into the
+    row.</p>` : "";
+
 const anatomy = (live && twin) ? `
   <div class="panel reveal"><table>
     <caption>the run, field by field · every value read from the ${oneTwin ? "two" : n(twins.length + 1)} rows</caption>
@@ -233,7 +249,7 @@ const anatomy = (live && twin) ? `
       <tr><td class="k">content_hash</td>${cellsTd((r) => esc(r.content_hash), "k hash")}</tr>
       <tr><td class="k">hash basis</td>${cellsTd((r) => esc(r.content_hash_basis))}</tr>
     </tbody>
-  </table></div>` : "";
+  </table>${twinHashNote}</div>` : "";
 
 // --- the four baselines, drawn ---------------------------------------------
 // Figures 00-02 are the essay's broken-baseline variants, verbatim; figure 03
@@ -779,8 +795,11 @@ const html = `<!doctype html>
   <p class="muted">Neither upstream repo is a dependency of this page: the rows are
   hand-copied across a hash-bound seam described in
   <a href="ledger/SOURCE.md">SOURCE.md</a>. Replaying a row needs the VANTAGE gold
-  surface, which is not published; the <code>content_hash</code> on each row is what a
-  reader without it can still check.</p>
+  surface, which is not published. The <code>content_hash</code> on each row identifies the
+  values of the gold columns, in canonical order and under the serialization the row's own
+  hash basis names &mdash; not the bytes of a file; for the two rows published here a copy of
+  the same frame, written out and read back, does not reproduce it, which
+  <a href="ledger/SOURCE.md">SOURCE.md</a> records and measures.</p>
 
   <h2 id="claim">The claim path <span class="pill green">row-backed</span></h2>
   <p>The gate reads a fundamentals surface the way a consumer would, re-derives what
