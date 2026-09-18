@@ -6,6 +6,7 @@ and in `docs/learnings/`, never here.
 
 | brief | describes commit | one-line |
 |---|---|---|
+| [2026-09-16-first-generation](2026-09-16-first-generation.md) | `867da65` (baseline) · `fc962f5` (parallax) | lane 1 re-emitted under the new basis into `ledger/runs/20260916T204716.976835Z/`; generation zero superseded and kept as history; the twin disclosure moved to the history table; corroboration under the new basis is one run. |
 | [2026-09-15-content-hash-form-change](2026-09-15-content-hash-form-change.md) | `0b2e184` (baseline) | `content_hash` restated to what it identifies, with the measured read-back hashes and a frozen-twin disclosure; supersedes the 2026-09-06 brief's "fifth corroborating run" instruction, because the re-emit carries a new basis and starts its own corroboration. |
 | [2026-09-06-datum-ruling-supersession-first](2026-09-06-datum-ruling-supersession-first.md) | `775978f` (baseline) · `91be859` (datum) | pick-up green, nothing changed in-repo; DATUM ruling makes the single-surface guard an invariant; `superseded_by` first, then DATUM adoption (`gate_sha` re-emit) with the operator; figure lock has lost its referent. |
 | [2026-09-01-reviewer-portal-on-vercel](2026-09-01-reviewer-portal-on-vercel.md) | `45a9a46` (baseline) · `9c59d5e` (site) | portal restyle in the site design system, evidence-backed baseline cards, self-contained public hero; open item is the fate of the site's /baseline page. |

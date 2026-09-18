@@ -1,5 +1,35 @@
 # STATUS
 
+- **2026-09-16** -- First shared-row generation: lane 1 re-emitted under the
+  new basis. The four rows the PARALLAX gate emitted at its commit
+  `fc962f584074aee9903115b50a295e1ab699fc56` (tree clean) are hand-copied
+  into `ledger/runs/20260916T204716.976835Z/`: one live row (GREEN,
+  `content_hash`
+  `sha256:4179658b002599d44c40a85cd4675cc4f81b2b8f5f87c7d6a2ca5ada0e40474a`)
+  and three twins (`plant_future_accepted`, `plant_vanishing_key`,
+  `plant_wrong_winner`, each RED for exactly its planted counts). The two
+  generation-zero rows are superseded through `ledger/supersession.json`
+  (live to live, twin to the `plant_future_accepted` twin) and stay at their
+  URLs as history. Lane 1 is credited from the shared rows check by check:
+  `no_future_accepted` and `restatement_visibility` are set nonzero by the
+  first twin and `as_of_monotonicity` by the second, so the lane derives
+  CLAIMABLE with no unfalsified check. The page moved: the current cell
+  reads the new rows, the history table shows the two superseded rows with
+  successor links, and the twin-basis disclosure of 2026-09-15 moved with
+  its row to the history table. `check-ledger.mjs --current-generation`
+  prints `runs/20260916T204716.976835Z`. Gates after the change:
+
+  ```
+  check-ledger: all rows bound, valid, and status-free
+  test-ledger: 22 positive + 119 negative controls + 7 CLI checks, all held
+  build --check: committed page matches the ledger
+  denaming-sweep: clean (2 terms, 0 hits)
+  ```
+
+  Corroboration under this basis at this commit is one run, this one.
+  Earlier runs on the uncommitted emitter change produced the same live hash
+  and are not on the ledger.
+
 - **2026-09-15** -- What `content_hash` claims, restated. The page and
   `ledger/SOURCE.md` said a reader holding a frame could use `content_hash`
   to confirm it is byte-identical to the one the gate read. That was false and
@@ -102,15 +132,19 @@
 
 Facts about this tree as it stands; none of them is fixed.
 
-- Neither published lane-1 row's `content_hash` can be reproduced from a
-  parquet copy of its frame: under the basis those rows carry, the
+- Neither generation-zero lane-1 row's `content_hash` can be reproduced from
+  a parquet copy of its frame: under the basis those rows carry, the
   serialization depends on
   how the frame was assembled in memory, so a staged parquet read-back of the
   same values hashes differently. Nothing in this repository detects that, and
   nothing here can: the guard -- an emitter that hashes its own staged
   read-back and writes no row on a mismatch -- is upstream, unverified from
   here, and would in any case apply only to rows emitted under the new basis,
-  of which this ledger holds none.
+  of which this ledger holds none. *Corrected 2026-09-16: the ledger now holds
+  four such rows, in `ledger/runs/20260916T204716.976835Z/`. The guard is
+  still upstream and unverified from here; what this repository holds is the
+  rows the emitter wrote after its own read-back check, at the gate commit
+  each row names.*
 - A current-generation live row whose `params` has no `d` passes
   `check-ledger.mjs`, and `build.mjs` then stops with a `TypeError` and a
   stack trace (exit 1) instead of a named refusal; a twin row without
