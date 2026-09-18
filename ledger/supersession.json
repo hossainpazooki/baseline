@@ -1,3 +1,6 @@
 {
-  "superseded": {}
+  "superseded": {
+    "verdicts/vantage-gold-local-parquet-lane1-live-20260901T174848.951466Z.json": "runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-live-20260916T204716.976835Z.json",
+    "verdicts/vantage-gold-local-parquet-lane1-twin-20260901T174849.431640Z.json": "runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_future_accepted-20260916T204717.458898Z.json"
+  }
 }

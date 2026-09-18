@@ -334,7 +334,7 @@
       <tr>
         <td class="k"><a href="https://github.com/hossainpazooki/pit-revision-examiner">PARALLAX</a></td>
         <td>runs the gate that produced every verdict row below</td>
-        <td class="k">parallax_sha = 25e12b872eb5</td>
+        <td class="k">gate_sha = fc962f584074</td>
       </tr>
       <tr>
         <td class="k">BASELINE</td>
@@ -348,9 +348,10 @@
   <a href="ledger/SOURCE.md">SOURCE.md</a>. Replaying a row needs the VANTAGE gold
   surface, which is not published. The <code>content_hash</code> on each row identifies the
   values of the gold columns, in canonical order and under the serialization the row's own
-  hash basis names &mdash; not the bytes of a file; for the two rows published here a copy of
-  the same frame, written out and read back, does not reproduce it, which
-  <a href="ledger/SOURCE.md">SOURCE.md</a> records and measures.</p>
+  hash basis names &mdash; not the bytes of a file. For the two generation-zero rows, kept below
+  as history, a copy of the same frame, written out and read back, does not reproduce it, which
+  <a href="ledger/SOURCE.md">SOURCE.md</a> records and measures; the current rows were written
+  only after the gate read its own staged copies back and reproduced their hashes.</p>
 
   <h2 id="claim">The claim path <span class="pill green">row-backed</span></h2>
   <p>The gate reads a fundamentals surface the way a consumer would, re-derives what
@@ -361,7 +362,7 @@
 
   <figure class="optic reveal">
     <svg viewBox="0 0 900 330" role="img" width="100%"
-         aria-label="The claim path. A gold baseline carries two observation points over one surface: the live cell reading the real surface, and the twin cell reading a copy with one planted error. Both are read by the same gate. The lane is creditable only if the live cell is green and the twin's red matches the plant exactly.">
+         aria-label="The claim path. A gold baseline carries observation points over one surface: the live cell reading the real surface, and 3 twin cells, each reading a copy with a different planted error. All are read by the same gate. The lane is creditable only if the live cell is green, every twin's red matches its own plant exactly, and every check has been set nonzero by some twin.">
       <line class="ln-base" x1="150" y1="250" x2="750" y2="250"/>
       <line class="ln-tick" x1="150" y1="243" x2="150" y2="257"/>
       <line class="ln-tick" x1="750" y1="243" x2="750" y2="257"/>
@@ -375,9 +376,9 @@
       <text class="t-name" x="150" y="228" text-anchor="middle">live cell</text>
       <text class="t-sub"  x="150" y="300" text-anchor="middle">cik % 97 == 0 sample</text>
       <text class="t-sub"  x="150" y="316" text-anchor="middle">440,661 as-of rows</text>
-      <text class="t-name bl" x="750" y="228" text-anchor="middle">twin cell</text>
-      <text class="t-sub"  x="750" y="300" text-anchor="middle">a copy, one planted error</text>
-      <text class="t-sub"  x="750" y="316" text-anchor="middle">plant_future_accepted</text>
+      <text class="t-name bl" x="750" y="228" text-anchor="middle">3 twin cells</text>
+      <text class="t-sub"  x="750" y="300" text-anchor="middle">3 copies, one planted error each</text>
+      <text class="t-sub"  x="750" y="316" text-anchor="middle">plant_future_accepted · plant_vanishing_key · plant_wrong_winner</text>
 
       <rect class="plate" x="342" y="72" width="216" height="58" rx="8"/>
       <text class="t-name au" x="450" y="96" text-anchor="middle">PARALLAX gate</text>
@@ -385,20 +386,20 @@
       <text class="t-sub" x="450" y="150" text-anchor="middle">viewpoint d = 2024-07-01</text>
 
       <text class="t-mark ok"  x="286" y="176" text-anchor="middle">GREEN · 0 violations</text>
-      <text class="t-mark bad" x="614" y="176" text-anchor="middle">RED · 2 violations</text>
+      <text class="t-mark bad" x="614" y="176" text-anchor="middle">RED · 2 + 2 + 1 violations</text>
     </svg>
     <figcaption>A shift is a measurement only across a known baseline; a green gate
     is a claim only against a twin that went red for the planted reason and nothing
     else. One viewpoint proves nothing in either instrument.</figcaption>
   </figure>
-  <div class="sentence">On 2026-09-01, the gate read 440,661 as-of rows of <code>vantage-gold-local-parquet</code> — scope <code>cik % 97 == 0 sample</code>, viewpoint d&nbsp;=&nbsp;2024-07-01 — and found GREEN on all 3 checks. The same run against a copy with one planted error went RED.</div>
+  <div class="sentence">On 2026-09-16, the gate read 440,661 as-of rows of <code>vantage-gold-local-parquet</code> — scope <code>cik % 97 == 0 sample</code>, viewpoint d&nbsp;=&nbsp;2024-07-01 — and found GREEN on all 3 checks. The same run against 3 copies, each with a different planted error, went RED, RED, RED.</div>
   <details class="rundetail reveal">
     <summary>open the run &mdash; the checks, the plant, and every field of the two rows</summary>
 
   <div class="panel reveal"><table>
-    <caption>the checks · semantics from the gate source at 25e12b872eb5</caption>
+    <caption>the checks · semantics from the gate source at fc962f584074</caption>
     <thead><tr><th>Check</th><th>What it asserts</th><th>Evaluated</th>
-      <th>Live violations</th><th>Twin violations (expected)</th></tr></thead>
+      <th>Live violations</th><th>Twin violations (expected) · plant_future_accepted</th><th>Twin violations (expected) · plant_vanishing_key</th><th>Twin violations (expected) · plant_wrong_winner</th></tr></thead>
     <tbody>
       <tr>
         <td class="k">no_future_accepted</td>
@@ -406,12 +407,16 @@
         <td class="num">440,661</td>
         <td class="k"><span class="okv">0</span></td>
         <td class="k"><span class="okv">1 = 1 expected</span></td>
+        <td class="k"><span class="okv">0 = 0 expected</span></td>
+        <td class="k"><span class="okv">0 = 0 expected</span></td>
       </tr>
       <tr>
         <td class="k">as_of_monotonicity</td>
         <td>moving the viewpoint forward (d_earlier → d) never loses a key and never regresses accepted knowledge</td>
         <td class="num">280,324</td>
         <td class="k"><span class="okv">0</span></td>
+        <td class="k"><span class="okv">0 = 0 expected</span></td>
+        <td class="k"><span class="okv">1 = 1 expected</span></td>
         <td class="k"><span class="okv">0 = 0 expected</span></td>
       </tr>
       <tr>
@@ -420,31 +425,27 @@
         <td class="num">440,661</td>
         <td class="k"><span class="okv">0</span></td>
         <td class="k"><span class="okv">1 = 1 expected</span></td>
+        <td class="k"><span class="okv">1 = 1 expected</span></td>
+        <td class="k"><span class="okv">1 = 1 expected</span></td>
       </tr>
     </tbody>
   </table></div>
-    <p>The plant: <code>plant_future_accepted</code> mutated 1 row out of 440,661. Expected violations <code>{1, 0, 1}</code>; the gate returned <code>{1, 0, 1}</code> — an exact match, which is the only thing that credits the green above. A red for any other reason credits nothing.</p>
+    <p>The plants, one per twin: <code>plant_future_accepted</code> mutated 1 row out of 440,661, expected <code>{1, 0, 1}</code>, the gate returned <code>{1, 0, 1}</code>; <code>plant_vanishing_key</code> mutated 1 row out of 440,660, expected <code>{0, 1, 1}</code>, the gate returned <code>{0, 1, 1}</code>; <code>plant_wrong_winner</code> mutated 2 rows out of 440,661, expected <code>{0, 0, 1}</code>, the gate returned <code>{0, 0, 1}</code>. Each red credits only an exact match to its own plant; a red for any other reason credits nothing.</p>
 
   <div class="panel reveal"><table>
-    <caption>the run, field by field · every value read from the two rows</caption>
-    <thead><tr><th>Field</th><th>live cell</th><th>twin cell</th></tr></thead>
+    <caption>the run, field by field · every value read from the 4 rows</caption>
+    <thead><tr><th>Field</th><th>live cell</th><th>twin · plant_future_accepted</th><th>twin · plant_vanishing_key</th><th>twin · plant_wrong_winner</th></tr></thead>
     <tbody>
-      <tr><td class="k">scope</td><td class="">cik % 97 == 0 sample</td><td class="">staged twin over cik % 97 == 0 sample</td></tr>
-      <tr><td class="k">viewpoint d</td><td class="k" colspan="2">2024-07-01T00:00:00+00:00</td></tr>
-      <tr><td class="k">earlier viewpoint d_earlier</td><td class="k" colspan="2">2020-01-02T00:00:00+00:00</td></tr>
-      <tr><td class="k">ran_at</td><td class="k">2026-09-01T17:48:48.951466Z</td><td class="k">2026-09-01T17:48:49.431640Z</td></tr>
-      <tr><td class="k">gate commit</td><td class="k" colspan="2">25e12b872eb554a7e877bc25fa908579dee7f87d · worktree clean</td></tr>
-      <tr><td class="k">runner</td><td class="k" colspan="2">local</td></tr>
-      <tr><td class="k">content_hash</td><td class="k hash">sha256:3fcfb3c3c28a0c28f3dc3e454b89767461f34fa6431238f58633c4bad8a31b65</td><td class="k hash">sha256:01be4edf771b9a2fc84f86c93b6c79a858f1c3f6621ce5073609a062be43ff47</td></tr>
-      <tr><td class="k">hash basis</td><td class="" colspan="2">sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)</td></tr>
+      <tr><td class="k">scope</td><td class="">cik % 97 == 0 sample</td><td class="">staged twin over cik % 97 == 0 sample</td><td class="">staged twin over cik % 97 == 0 sample</td><td class="">staged twin over cik % 97 == 0 sample</td></tr>
+      <tr><td class="k">viewpoint d</td><td class="k" colspan="4">2024-07-01T00:00:00+00:00</td></tr>
+      <tr><td class="k">earlier viewpoint d_earlier</td><td class="k" colspan="4">2020-01-02T00:00:00+00:00</td></tr>
+      <tr><td class="k">ran_at</td><td class="k">2026-09-16T20:47:16.976835Z</td><td class="k">2026-09-16T20:47:17.458898Z</td><td class="k">2026-09-16T20:47:17.872572Z</td><td class="k">2026-09-16T20:47:18.294858Z</td></tr>
+      <tr><td class="k">gate commit</td><td class="k" colspan="4">fc962f584074aee9903115b50a295e1ab699fc56 · worktree clean</td></tr>
+      <tr><td class="k">runner</td><td class="k" colspan="4">local</td></tr>
+      <tr><td class="k">content_hash</td><td class="k hash">sha256:4179658b002599d44c40a85cd4675cc4f81b2b8f5f87c7d6a2ca5ada0e40474a</td><td class="k hash">sha256:59fbe78cbe7514a6b0cff941465b3fabc1ae68f40d280f73e905982fce27926f</td><td class="k hash">sha256:e5c106e0ae6eb973cf188455f851adcdea1864fbca8cccd89f33ea30a5421aed</td><td class="k hash">sha256:93b2bfaf7e7f2f4fd2c1b428cbfbf92f95cf345ddb127784b9a4f672d0208cd7</td></tr>
+      <tr><td class="k">hash basis</td><td class="" colspan="4">sha256 of Arrow IPC at compatibility level oldest, one chunk, of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)</td></tr>
     </tbody>
-  </table>
-    <p class="muted">On the twin cell's hash basis, "of the gated frame": the frame that gate
-    read is the staged twin parquet, which read back hashes
-    <code>sha256:bbe60bf9daf1</code>&hellip; under that same basis, while the row records the
-    hash of the same values before they were written. The row is frozen as published, so the
-    gap is recorded in <a href="ledger/SOURCE.md">SOURCE.md</a> rather than edited into the
-    row.</p></div>
+  </table></div>
   </details>
 
   <h2 id="failures">How baselines fail &mdash; and the one that holds</h2>
@@ -522,10 +523,7 @@
         manufactures shift &mdash; <b>false parallax</b>, indistinguishable from signal on
         a single pair of plates.</p></div>
       <div class="fl-half"><span class="fl-cap sys">on this ledger</span>
-        <p>The twin exists to catch exactly this: <code>plant_future_accepted</code>
-        moved the boundary by 1 row and the gate went
-        <span class="pill red">RED</span> with violations
-        <code>{1, 0, 1}</code> &mdash; the plant, the whole plant, and
+        <p>The twins exist to catch exactly this: <code>plant_future_accepted</code> moved the boundary by 1 row and the gate went <span class="pill red">RED</span> with violations <code>{1, 0, 1}</code>; <code>plant_vanishing_key</code> moved the boundary by 1 row and the gate went <span class="pill red">RED</span> with violations <code>{0, 1, 1}</code>; <code>plant_wrong_winner</code> moved the boundary by 2 rows and the gate went <span class="pill red">RED</span> with violations <code>{0, 0, 1}</code> &mdash; each plant, the whole plant, and
         nothing but the plant.</p></div>
     </article>
     <article class="fail reveal">
@@ -554,8 +552,8 @@
         <p>Lane 1 derives
         <span class="pill claimable">CLAIMABLE</span>
         today: live <span class="pill green">GREEN</span> over
-        440,661 as-of rows at d&nbsp;=&nbsp;2024-07-01, twin red for
-        the planted reason. One surface, one lane, one dated run &mdash; <b>and no more
+        440,661 as-of rows at d&nbsp;=&nbsp;2024-07-01, 3 twins red, each for
+        its own planted reason. One surface, one lane, one dated run &mdash; <b>and no more
         than that</b>.</p></div>
     </article>
   </div>
@@ -570,7 +568,7 @@
   <h2 id="status">Status by lane</h2>
   <p>Surface under test: <code>vantage-gold-local-parquet</code>. A lane is CLAIMABLE only when both
   cells exist: the live surface green <em>and</em> the planted-error twin red for exactly
-  the planted reason. Status is recomputed from the rows at every build; it is never
+  the planted reason. Each check is credited on its own: every check the live cell reports must have been set nonzero by at least one twin red for its planted reason, or the lane derives PARTIAL and names the check. Status is recomputed from the rows at every build; it is never
   written down.</p>
   <div class="panel reveal"><table>
     <caption>derived at build time, never authored</caption>
@@ -579,7 +577,7 @@
       <tr>
         <td class="k">1 · local Parquet</td>
         <td><span class="pill claimable">CLAIMABLE</span></td>
-        <td class="muted">live cell GREEN and twin cell RED, red matching the planted error exactly</td>
+        <td class="muted">live cell GREEN and every twin cell RED matching its planted error exactly, every check set nonzero by some twin</td>
       </tr>
       <tr>
         <td class="k">2 · Unity Catalog</td>
@@ -610,10 +608,10 @@
         <td>cik % 97 == 0 sample</td>
         <td class="num">440,661</td>
         <td class="k">no_future_accepted:0  as_of_monotonicity:0  restatement_visibility:0</td>
-        <td>2026-09-01</td>
-        <td class="k">25e12b872eb5</td>
-        <td class="k" title="sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">3fcfb3c3c28a…</td>
-        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-live-20260901T174848.951466Z.json">row</a> <span class="unsigned">unsigned</span></td>
+        <td>2026-09-16</td>
+        <td class="k">fc962f584074</td>
+        <td class="k" title="sha256 of Arrow IPC at compatibility level oldest, one chunk, of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">4179658b0025…</td>
+        <td><a href="ledger/runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-live-20260916T204716.976835Z.json">row</a> <span class="unsigned">unsigned</span></td>
       </tr>
       <tr>
         <td><span class="pill red">RED</span></td>
@@ -623,13 +621,70 @@
         <td>staged twin over cik % 97 == 0 sample</td>
         <td class="num">440,661</td>
         <td class="k">no_future_accepted:1  as_of_monotonicity:0  restatement_visibility:1</td>
-        <td>2026-09-01</td>
-        <td class="k">25e12b872eb5</td>
-        <td class="k" title="sha256 of canonical Arrow IPC of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">01be4edf771b…</td>
-        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-twin-20260901T174849.431640Z.json">row</a> <span class="unsigned">unsigned</span></td>
+        <td>2026-09-16</td>
+        <td class="k">fc962f584074</td>
+        <td class="k" title="sha256 of Arrow IPC at compatibility level oldest, one chunk, of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">59fbe78cbe75…</td>
+        <td><a href="ledger/runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_future_accepted-20260916T204717.458898Z.json">row</a> <span class="unsigned">unsigned</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill red">RED</span></td>
+        <td class="k">vantage-gold-local-parquet</td>
+        <td>1 · local Parquet</td>
+        <td>twin</td>
+        <td>staged twin over cik % 97 == 0 sample</td>
+        <td class="num">440,660</td>
+        <td class="k">no_future_accepted:0  as_of_monotonicity:1  restatement_visibility:1</td>
+        <td>2026-09-16</td>
+        <td class="k">fc962f584074</td>
+        <td class="k" title="sha256 of Arrow IPC at compatibility level oldest, one chunk, of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">e5c106e0ae6e…</td>
+        <td><a href="ledger/runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_vanishing_key-20260916T204717.872572Z.json">row</a> <span class="unsigned">unsigned</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill red">RED</span></td>
+        <td class="k">vantage-gold-local-parquet</td>
+        <td>1 · local Parquet</td>
+        <td>twin</td>
+        <td>staged twin over cik % 97 == 0 sample</td>
+        <td class="num">440,661</td>
+        <td class="k">no_future_accepted:0  as_of_monotonicity:0  restatement_visibility:1</td>
+        <td>2026-09-16</td>
+        <td class="k">fc962f584074</td>
+        <td class="k" title="sha256 of Arrow IPC at compatibility level oldest, one chunk, of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)">93b2bfaf7e7f…</td>
+        <td><a href="ledger/runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_wrong_winner-20260916T204718.294858Z.json">row</a> <span class="unsigned">unsigned</span></td>
       </tr>
     </tbody>
   </table></div>
+  <p>Superseded verdicts &mdash; kept at their published URLs, credited nothing:</p>
+  <div class="panel reveal"><table>
+    <caption>GATE_VERDICT &middot; superseded, history only</caption>
+    <thead><tr><th>Result</th><th>Cell</th><th>Ran</th><th>Gate commit</th>
+      <th>Content hash</th><th>Superseded by</th><th>Provenance</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="pill green">GREEN</span></td>
+        <td>live</td>
+        <td>2026-09-01</td>
+        <td class="k">25e12b872eb5</td>
+        <td class="k">3fcfb3c3c28a&hellip;</td>
+        <td class="k"><a href="ledger/runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-live-20260916T204716.976835Z.json">successor</a></td>
+        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-live-20260901T174848.951466Z.json">row</a> <span class="unsigned">unsigned</span></td>
+      </tr>
+      <tr>
+        <td><span class="pill red">RED</span></td>
+        <td>twin</td>
+        <td>2026-09-01</td>
+        <td class="k">25e12b872eb5</td>
+        <td class="k">01be4edf771b&hellip;</td>
+        <td class="k"><a href="ledger/runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_future_accepted-20260916T204717.458898Z.json">successor</a></td>
+        <td><a href="ledger/verdicts/vantage-gold-local-parquet-lane1-twin-20260901T174849.431640Z.json">row</a> <span class="unsigned">unsigned</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="muted">The superseded twin row's hash basis reads "of the gated frame": the frame that
+  gate read is the staged twin parquet, which read back hashes <code>sha256:bbe60bf9daf1</code>&hellip;
+  under that same basis, while the row records the hash of the same values before they were
+  written. The row stays published as history, so the gap is recorded in
+  <a href="ledger/SOURCE.md">SOURCE.md</a> rather than edited into the row.</p></div>
   <p>Surface audits &mdash; established by reading vendor documentation, visibly not gate
   runs, coloured accordingly:</p>
   <div class="panel reveal"><table>

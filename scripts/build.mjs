@@ -400,6 +400,14 @@ const verdictRowsHtml = verdicts.filter(({ rel }) => !superseded.has(rel)).map((
 // With nothing superseded this is the empty string and the page is
 // unchanged (build.mjs --check pins that against the committed page).
 const historyRows = verdicts.filter(({ rel }) => superseded.has(rel));
+// The disclosure travels with its row: once the generation-zero twin is
+// history, the note sits under the history table instead of the current cell.
+const historyNote = historyRows.some(({ row }) => row.cell === "twin" && row.content_hash === DISCLOSED_TWIN_HASH) ? `
+  <p class="muted">The superseded twin row's hash basis reads "of the gated frame": the frame that
+  gate read is the staged twin parquet, which read back hashes <code>sha256:bbe60bf9daf1</code>&hellip;
+  under that same basis, while the row records the hash of the same values before they were
+  written. The row stays published as history, so the gap is recorded in
+  <a href="ledger/SOURCE.md">SOURCE.md</a> rather than edited into the row.</p>` : "";
 const historyHtml = historyRows.length === 0 ? "" : `
   <p>Superseded verdicts &mdash; kept at their published URLs, credited nothing:</p>
   <div class="panel reveal"><table>
@@ -417,7 +425,7 @@ const historyHtml = historyRows.length === 0 ? "" : `
         <td><a href="ledger/${esc(rel)}">row</a> <span class="unsigned">unsigned</span></td>
       </tr>`).join("")}
     </tbody>
-  </table></div>`;
+  </table>${historyNote}</div>`;
 
 const auditRowHtml = audits.map(({ row, rel }) => `
       <tr>
@@ -797,9 +805,10 @@ const html = `<!doctype html>
   <a href="ledger/SOURCE.md">SOURCE.md</a>. Replaying a row needs the VANTAGE gold
   surface, which is not published. The <code>content_hash</code> on each row identifies the
   values of the gold columns, in canonical order and under the serialization the row's own
-  hash basis names &mdash; not the bytes of a file; for the two rows published here a copy of
-  the same frame, written out and read back, does not reproduce it, which
-  <a href="ledger/SOURCE.md">SOURCE.md</a> records and measures.</p>
+  hash basis names &mdash; not the bytes of a file. For the two generation-zero rows, kept below
+  as history, a copy of the same frame, written out and read back, does not reproduce it, which
+  <a href="ledger/SOURCE.md">SOURCE.md</a> records and measures; the current rows were written
+  only after the gate read its own staged copies back and reproduced their hashes.</p>
 
   <h2 id="claim">The claim path <span class="pill green">row-backed</span></h2>
   <p>The gate reads a fundamentals surface the way a consumer would, re-derives what

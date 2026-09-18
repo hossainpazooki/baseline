@@ -7,6 +7,9 @@ file to the sha256 recorded at copy time — `check-ledger.mjs` recomputes each
 hash and fails the build on any mismatch or any unlisted/missing file. The
 hand-copy seam is otherwise unverified.
 
+**Generation zero** -- `verdicts/`, the two rows of 2026-09-01, superseded on
+2026-09-16 by the generation below and kept at their URLs as history:
+
 - `parallax_sha`: `25e12b872eb554a7e877bc25fa908579dee7f87d`
 - worktree at emission: **clean** — the verdict emitter, its LF-newline fix,
   and the twin-scope fix are all committed at this sha, so the emitter stamped
@@ -24,12 +27,35 @@ platform, so raw-byte pins false-positive on checkout (caught in CI
 b41c436b8ed7d3c439874a2611bc0f2bb902402b243e57882decb7195379d6b2  verdicts/vantage-gold-local-parquet-lane1-twin-20260901T174849.431640Z.json
 ce10bac1d0793625d1c0948a867c10b189c4cfa556ed6ee0fc08ebc1b85815fb  audits/commercial-fundamentals-api-2026-08-20.json
 f02d465124885cffa5e40b5e1a69c8a72aedc4e4e31848ab3e2e99c184cc60ff  snapshots/audit-2026-08-20.json
-e3e3a3b22955c157dd3cb0efcb81dbb608505c68b48d61ea5523b5671d75cb38  supersession.json
+7d56ade2a6f1df7b83723c07399934aac578d255f00fe7e232f2c106f53f34e2  supersession.json
+b4e8eef9e760846aa71cf1890bbb47c94b3a5ffa7263615be39ac7192eca0b5d  runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-live-20260916T204716.976835Z.json
+d8fdc779f258f24a8dc1db68bb26bfae869507f5a5e64b0812752740fce58186  runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_future_accepted-20260916T204717.458898Z.json
+6f947518444f6385346de9d84b59dfe9e254c7303ddd68fcc46527dfae6a4bbd  runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_vanishing_key-20260916T204717.872572Z.json
+78e9453dce4480e31b51197bde64b807ae08e0f51d8ab50e25bfec7e300dedeb  runs/20260916T204716.976835Z/vantage-gold-local-parquet-lane1-twin-plant_wrong_winner-20260916T204718.294858Z.json
+
+## Generation runs/20260916T204716.976835Z
+
+Emitted 2026-09-16 by the same command at PARALLAX commit
+`fc962f584074aee9903115b50a295e1ab699fc56` (the emitter change of 2026-09-15
+committed; `gate_worktree` clean on every row) and hand-copied here the same
+day: one live row and three twin rows (`plant_future_accepted`,
+`plant_vanishing_key`, `plant_wrong_winner`), each twin's file name carrying
+its mutation. Every row carries the basis `sha256 of Arrow IPC at
+compatibility level oldest, one chunk, of the gated frame (sorted by cik, tag,
+ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars
+1.43.2)`; the live row's `content_hash` is
+`sha256:4179658b002599d44c40a85cd4675cc4f81b2b8f5f87c7d6a2ca5ada0e40474a`.
+Under this basis the emitter read each staged copy back and wrote no row
+unless the read-back reproduced the in-memory hash, so a holder of a staged
+copy reproduces these hashes. This is the first run under this basis at this
+commit: its corroboration count is one. The two generation-zero rows are
+superseded by this generation's live row and its `plant_future_accepted` twin
+through `supersession.json`.
 
 ## Replay
 
 ```
-# in the PARALLAX repo, at parallax_sha (or later):
+# in the PARALLAX repo, at the generation's gate commit (or later):
 .venv/Scripts/python.exe scripts/run_gate_local.py \
   --gold <path-to>/lake-backfill/gold --cik-mod 97 \
   --stage-twin <scratch> --emit-verdicts <out>

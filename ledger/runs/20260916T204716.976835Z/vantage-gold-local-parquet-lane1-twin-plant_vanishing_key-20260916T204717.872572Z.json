@@ -1,0 +1,39 @@
+{
+  "schema": "datum/gate-verdict/1",
+  "kind": "GATE_VERDICT",
+  "surface": "vantage-gold-local-parquet",
+  "lane": 1,
+  "cell": "twin",
+  "result": "RED",
+  "checks": {
+    "no_future_accepted": 0,
+    "as_of_monotonicity": 1,
+    "restatement_visibility": 1
+  },
+  "evaluated": {
+    "no_future_accepted": 440660,
+    "as_of_monotonicity": 280324,
+    "restatement_visibility": 440660
+  },
+  "rows": 440660,
+  "scope": "staged twin over cik % 97 == 0 sample",
+  "params": {
+    "d": "2024-07-01T00:00:00+00:00",
+    "d_earlier": "2020-01-02T00:00:00+00:00"
+  },
+  "gate_sha": "fc962f584074aee9903115b50a295e1ab699fc56",
+  "gate_worktree": "clean",
+  "content_hash": "sha256:e5c106e0ae6eb973cf188455f851adcdea1864fbca8cccd89f33ea30a5421aed",
+  "content_hash_basis": "sha256 of Arrow IPC at compatibility level oldest, one chunk, of the gated frame (sorted by cik, tag, ddate, qtrs, uom, accepted, adsh, version, valid_from, valid_to; polars 1.43.2)",
+  "ran_at": "2026-09-16T20:47:17.872572Z",
+  "runner": "local",
+  "planted": {
+    "mutation": "plant_vanishing_key",
+    "mutated_rows": 1,
+    "expected_violations": {
+      "no_future_accepted": 0,
+      "as_of_monotonicity": 1,
+      "restatement_visibility": 1
+    }
+  }
+}
